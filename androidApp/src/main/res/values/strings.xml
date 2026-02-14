@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Notes App</string>
+    <string name="bootstrap_ready">Foundation bootstrap completed (%1$s).</string>
+</resources>
