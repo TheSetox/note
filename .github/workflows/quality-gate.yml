@@ -50,6 +50,46 @@ jobs:
           :desktopApp:assemble
           koverXmlReport
 
+      - name: Upload Kover reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kover-reports
+          path: |
+            **/build/reports/kover/**
+          if-no-files-found: warn
+
+      - name: Publish Kover summary
+        if: always()
+        run: |
+          echo "### Kover Line Coverage" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Module | Missed | Covered | Total | Line % |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---:|---:|---:|---:|" >> "$GITHUB_STEP_SUMMARY"
+
+          reports=$(find . -path '*/build/reports/kover/report.xml' | sort)
+          if [ -z "$reports" ]; then
+            echo "| _none_ | 0 | 0 | 0 | n/a |" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          while IFS= read -r report; do
+            [ -z "$report" ] && continue
+            line=$(grep 'counter type=\"LINE\"' "$report" | tail -n 1 || true)
+            missed=$(echo "$line" | sed -n 's/.*missed=\"\([0-9]\+\)\".*/\1/p')
+            covered=$(echo "$line" | sed -n 's/.*covered=\"\([0-9]\+\)\".*/\1/p')
+            missed=${missed:-0}
+            covered=${covered:-0}
+            total=$((missed + covered))
+            if [ "$total" -eq 0 ]; then
+              pct="n/a"
+            else
+              pct=$(awk -v c="$covered" -v t="$total" 'BEGIN { printf "%.2f%%", (100*c)/t }')
+            fi
+            module=$(echo "$report" | sed -E 's#^\./##; s#/build/reports/kover/report.xml$##')
+            echo "| \`$module\` | $missed | $covered | $total | $pct |" >> "$GITHUB_STEP_SUMMARY"
+          done <<< "$reports"
+
       - name: Upload reports on failure
         if: failure()
         uses: actions/upload-artifact@v4
