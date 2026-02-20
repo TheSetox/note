@@ -37,9 +37,6 @@ jobs:
           java-version: "17"
           cache: gradle
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Validate Gradle wrapper
         uses: gradle/actions/wrapper-validation@v3
 
