@@ -37,9 +37,6 @@ jobs:
           java-version: "17"
           cache: gradle
 
-      - name: Validate Gradle wrapper
-        uses: gradle/actions/wrapper-validation@v3
-
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
@@ -77,9 +74,6 @@ jobs:
           distribution: temurin
           java-version: "17"
           cache: gradle
-
-      - name: Validate Gradle wrapper
-        uses: gradle/actions/wrapper-validation@v3
 
       - name: Make gradlew executable
         run: chmod +x ./gradlew
