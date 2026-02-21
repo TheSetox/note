@@ -26,6 +26,16 @@ on:
         required: false
         type: string
         default: ""
+      detekt_cmd:
+        description: Gradle command argument for Detekt check
+        required: false
+        type: string
+        default: ""
+      detekt_label:
+        description: Label shown for Detekt check
+        required: false
+        type: string
+        default: ""
       test_cmd:
         description: Gradle command argument for test check
         required: false
@@ -56,8 +66,8 @@ on:
         required: false
         type: string
         default: ""
-      kover_report_path:
-        description: XML report path used to build coverage table
+      kover_html_report_dir:
+        description: HTML report directory used to build coverage table and artifact zip
         required: false
         type: string
         default: ""
@@ -85,6 +95,7 @@ jobs:
       contents: read
     outputs:
       lint: ${{ steps.collect.outputs.lint }}
+      detekt: ${{ steps.collect.outputs.detekt }}
       test: ${{ steps.collect.outputs.test }}
       assemble: ${{ steps.collect.outputs.assemble }}
       kover: ${{ steps.collect.outputs.kover }}
@@ -111,6 +122,15 @@ jobs:
         run: |
           set -o pipefail
           ./gradlew ${{ inputs.lint_cmd }} 2>&1 | tee "$RUNNER_TEMP/${{ inputs.module_key }}-spotless.log"
+
+      - name: Run Detekt check
+        id: detekt
+        if: ${{ inputs.detekt_cmd != '' }}
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          ./gradlew ${{ inputs.detekt_cmd }} 2>&1 | tee "$RUNNER_TEMP/${{ inputs.module_key }}-detekt.log"
 
       - name: Run test check
         id: test
@@ -147,21 +167,25 @@ jobs:
           MODULE_TITLE: ${{ inputs.module_title }}
           LINT_CMD: ${{ inputs.lint_cmd }}
           LINT_OUTCOME: ${{ steps.lint.outcome }}
+          DETEKT_CMD: ${{ inputs.detekt_cmd }}
+          DETEKT_OUTCOME: ${{ steps.detekt.outcome }}
           TEST_CMD: ${{ inputs.test_cmd }}
           TEST_OUTCOME: ${{ steps.test.outcome }}
           ASSEMBLE_CMD: ${{ inputs.assemble_cmd }}
           ASSEMBLE_OUTCOME: ${{ steps.assemble.outcome }}
           KOVER_CMD: ${{ inputs.kover_cmd }}
           KOVER_OUTCOME: ${{ steps.kover.outcome }}
-          KOVER_REPORT_PATH: ${{ inputs.kover_report_path }}
+          KOVER_HTML_REPORT_DIR: ${{ inputs.kover_html_report_dir }}
           COVERAGE_MODULE: ${{ inputs.coverage_module }}
         run: |
           lint_result="${LINT_OUTCOME:-skipped}"
+          detekt_result="${DETEKT_OUTCOME:-skipped}"
           test_result="${TEST_OUTCOME:-skipped}"
           assemble_result="${ASSEMBLE_OUTCOME:-skipped}"
           kover_result="${KOVER_OUTCOME:-skipped}"
 
           [ -z "$LINT_CMD" ] && lint_result="skipped"
+          [ -z "$DETEKT_CMD" ] && detekt_result="skipped"
           [ -z "$TEST_CMD" ] && test_result="skipped"
           [ -z "$ASSEMBLE_CMD" ] && assemble_result="skipped"
           [ -z "$KOVER_CMD" ] && kover_result="skipped"
@@ -176,25 +200,59 @@ jobs:
             echo "| Module | Missed | Covered | Total | Line % |" > "$table_file"
             echo "|---|---:|---:|---:|---:|" >> "$table_file"
 
-            if [ -n "$KOVER_REPORT_PATH" ] && [ -f "$KOVER_REPORT_PATH" ]; then
-              line=$(grep 'counter type=\"LINE\"' "$KOVER_REPORT_PATH" | tail -n 1 || true)
-              missed=$(echo "$line" | sed -n 's/.*missed=\"\([0-9]\+\)\".*/\1/p')
-              covered=$(echo "$line" | sed -n 's/.*covered=\"\([0-9]\+\)\".*/\1/p')
-              missed=${missed:-0}
+            index_file="$KOVER_HTML_REPORT_DIR/index.html"
+            if [ -n "$KOVER_HTML_REPORT_DIR" ] && [ -f "$index_file" ]; then
+              line_abs=$(
+                awk '
+                  /<td class="name">all classes<\/td>/ { inrow = 1; next }
+                  inrow && /<span class="absValue">/ {
+                    getline
+                    gsub(/[[:space:]]/, "", $0)
+                    if ($0 ~ /^\([0-9]+\/[0-9]+\)$/) {
+                      abs[++count] = $0
+                    }
+                  }
+                  inrow && /<\/tr>/ { exit }
+                  END {
+                    if (count >= 3) {
+                      print abs[3]
+                    }
+                  }
+                ' "$index_file"
+              )
+              line_pct=$(
+                awk '
+                  /<td class="name">all classes<\/td>/ { inrow = 1; next }
+                  inrow && /<span class="percent">/ {
+                    getline
+                    gsub(/[[:space:]]/, "", $0)
+                    if ($0 ~ /^[0-9]+(\.[0-9]+)?%$/) {
+                      pct[++count] = $0
+                    }
+                  }
+                  inrow && /<\/tr>/ { exit }
+                  END {
+                    if (count >= 3) {
+                      print pct[3]
+                    }
+                  }
+                ' "$index_file"
+              )
+              covered=$(echo "$line_abs" | sed -n 's/^(\([0-9]\+\)\/\([0-9]\+\))$/\1/p')
+              total=$(echo "$line_abs" | sed -n 's/^(\([0-9]\+\)\/\([0-9]\+\))$/\2/p')
               covered=${covered:-0}
-              total=$((missed + covered))
-              if [ "$total" -eq 0 ]; then
-                pct="n/a"
-              else
-                pct=$(awk -v c="$covered" -v t="$total" 'BEGIN { printf "%.2f%%", (100*c)/t }')
-              fi
-              echo "| \`$module_name\` | $missed | $covered | $total | $pct |" >> "$table_file"
+              total=${total:-0}
+              missed=$((total - covered))
+              [ "$missed" -lt 0 ] && missed=0
+              [ -z "$line_pct" ] && line_pct="n/a"
+              echo "| \`$module_name\` | $missed | $covered | $total | $line_pct |" >> "$table_file"
             else
               echo "| \`$module_name\` | 0 | 0 | 0 | n/a |" >> "$table_file"
             fi
           fi
 
           echo "lint=${lint_result}" >> "$GITHUB_OUTPUT"
+          echo "detekt=${detekt_result}" >> "$GITHUB_OUTPUT"
           echo "test=${test_result}" >> "$GITHUB_OUTPUT"
           echo "assemble=${assemble_result}" >> "$GITHUB_OUTPUT"
           echo "kover=${kover_result}" >> "$GITHUB_OUTPUT"
@@ -210,6 +268,9 @@ jobs:
           LINT_CMD: ${{ inputs.lint_cmd }}
           LINT_LABEL: ${{ inputs.lint_label }}
           LINT_RESULT: ${{ steps.collect.outputs.lint }}
+          DETEKT_CMD: ${{ inputs.detekt_cmd }}
+          DETEKT_LABEL: ${{ inputs.detekt_label }}
+          DETEKT_RESULT: ${{ steps.collect.outputs.detekt }}
           TEST_CMD: ${{ inputs.test_cmd }}
           TEST_LABEL: ${{ inputs.test_label }}
           TEST_RESULT: ${{ steps.collect.outputs.test }}
@@ -250,6 +311,7 @@ jobs:
           echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
 
           add_row "$LINT_CMD" "$LINT_LABEL" "$LINT_RESULT"
+          add_row "$DETEKT_CMD" "$DETEKT_LABEL" "$DETEKT_RESULT"
           add_row "$TEST_CMD" "$TEST_LABEL" "$TEST_RESULT"
           add_row "$ASSEMBLE_CMD" "$ASSEMBLE_LABEL" "$ASSEMBLE_RESULT"
           add_row "$KOVER_CMD" "$KOVER_LABEL" "$KOVER_RESULT"
@@ -268,6 +330,8 @@ jobs:
         env:
           LINT_CMD: ${{ inputs.lint_cmd }}
           LINT_RESULT: ${{ steps.collect.outputs.lint }}
+          DETEKT_CMD: ${{ inputs.detekt_cmd }}
+          DETEKT_RESULT: ${{ steps.collect.outputs.detekt }}
           TEST_CMD: ${{ inputs.test_cmd }}
           TEST_RESULT: ${{ steps.collect.outputs.test }}
           ASSEMBLE_CMD: ${{ inputs.assemble_cmd }}
@@ -289,6 +353,7 @@ jobs:
           }
 
           check_result "$LINT_CMD" "$LINT_RESULT"
+          check_result "$DETEKT_CMD" "$DETEKT_RESULT"
           check_result "$TEST_CMD" "$TEST_RESULT"
           check_result "$ASSEMBLE_CMD" "$ASSEMBLE_RESULT"
           check_result "$KOVER_CMD" "$KOVER_RESULT"
@@ -308,6 +373,16 @@ jobs:
             **/build/reports/spotless/**
           if-no-files-found: ignore
 
+      - name: Upload Detekt outputs
+        if: always() && inputs.detekt_cmd != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.module_key }}-detekt
+          path: |
+            ${{ runner.temp }}/${{ inputs.module_key }}-detekt.log
+            **/build/reports/detekt/**
+          if-no-files-found: ignore
+
       - name: Upload test outputs
         if: always() && inputs.test_cmd != ''
         uses: actions/upload-artifact@v4
@@ -319,6 +394,26 @@ jobs:
             **/build/reports/tests/**
           if-no-files-found: ignore
 
+      - name: Archive Kover HTML report
+        id: kover_archive
+        if: always() && inputs.kover_cmd != '' && inputs.kover_html_report_dir != ''
+        shell: bash
+        run: |
+          report_dir="${{ inputs.kover_html_report_dir }}"
+          archive_path="$RUNNER_TEMP/${{ inputs.module_key }}-kover-html.zip"
+
+          if [ -d "$report_dir" ]; then
+            parent_dir=$(dirname "$report_dir")
+            report_name=$(basename "$report_dir")
+            (
+              cd "$parent_dir"
+              zip -rq "$archive_path" "$report_name"
+            )
+            echo "archive_path=$archive_path" >> "$GITHUB_OUTPUT"
+          else
+            echo "archive_path=" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Upload Kover outputs
         if: always() && inputs.kover_cmd != ''
         uses: actions/upload-artifact@v4
@@ -326,7 +421,8 @@ jobs:
           name: ${{ inputs.module_key }}-kover
           path: |
             ${{ runner.temp }}/${{ inputs.module_key }}-kover.log
-            ${{ inputs.kover_report_path }}
+            ${{ steps.kover_archive.outputs.archive_path }}
+            ${{ inputs.kover_html_report_dir }}
             **/build/reports/kover/**
           if-no-files-found: ignore
 
@@ -337,6 +433,8 @@ jobs:
           name: ${{ inputs.module_key }}-quality-reports
           path: |
             ${{ runner.temp }}/${{ inputs.module_key }}-assemble.log
+            ${{ runner.temp }}/${{ inputs.module_key }}-detekt.log
+            ${{ steps.kover_archive.outputs.archive_path }}
             **/build/reports/**
             **/build/test-results/**
           if-no-files-found: ignore
@@ -366,6 +464,9 @@ jobs:
           LINT_CMD: ${{ inputs.lint_cmd }}
           LINT_LABEL: ${{ inputs.lint_label }}
           LINT_RESULT: ${{ needs.module-quality.outputs.lint }}
+          DETEKT_CMD: ${{ inputs.detekt_cmd }}
+          DETEKT_LABEL: ${{ inputs.detekt_label }}
+          DETEKT_RESULT: ${{ needs.module-quality.outputs.detekt }}
           TEST_CMD: ${{ inputs.test_cmd }}
           TEST_LABEL: ${{ inputs.test_label }}
           TEST_RESULT: ${{ needs.module-quality.outputs.test }}

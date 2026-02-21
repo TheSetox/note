@@ -49,13 +49,15 @@ jobs:
       runner: ubuntu-latest
       lint_cmd: "spotlessCheck"
       lint_label: "spotlessCheck"
+      detekt_cmd: ":core:database:detekt"
+      detekt_label: ":core:database:detekt"
       test_cmd: ":core:database:allTests"
       test_label: ":core:database:allTests"
       assemble_cmd: ":core:database:assemble"
       assemble_label: ":core:database:assemble"
-      kover_cmd: ":core:database:koverXmlReport"
-      kover_label: ":core:database:koverXmlReport"
-      kover_report_path: core/database/build/reports/kover/report.xml
+      kover_cmd: ":core:database:koverHtmlReport"
+      kover_label: ":core:database:koverHtmlReport"
+      kover_html_report_dir: core/database/build/reports/kover/html
       coverage_module: core:database
       coverage_title: core:database Line Coverage
     secrets: inherit

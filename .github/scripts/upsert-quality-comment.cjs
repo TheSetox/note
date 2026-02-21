@@ -29,6 +29,11 @@ function buildCheckRows(env) {
       result: env.LINT_RESULT,
     },
     {
+      cmd: env.DETEKT_CMD,
+      label: env.DETEKT_LABEL,
+      result: env.DETEKT_RESULT,
+    },
+    {
       cmd: env.TEST_CMD,
       label: env.TEST_LABEL,
       result: env.TEST_RESULT,
