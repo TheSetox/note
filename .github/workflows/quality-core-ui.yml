@@ -47,8 +47,8 @@ jobs:
       module_key: core-ui
       module_title: core:ui Module
       runner: ubuntu-latest
-      lint_cmd: ":core:ui:lintDebug"
-      lint_label: ":core:ui:lintDebug"
+      lint_cmd: ":core:ui:lintAnalyzeAndroidHostTest"
+      lint_label: ":core:ui:lintAnalyzeAndroidHostTest"
       test_cmd: ":core:ui:allTests"
       test_label: ":core:ui:allTests"
       assemble_cmd: ":core:ui:assemble"
