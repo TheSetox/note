@@ -47,8 +47,8 @@ jobs:
       module_key: android
       module_title: Android Module
       runner: ubuntu-latest
-      lint_cmd: ":androidApp:lintDebug"
-      lint_label: ":androidApp:lintDebug"
+      lint_cmd: "spotlessCheck"
+      lint_label: "spotlessCheck"
       test_cmd: ":androidApp:testDebugUnitTest"
       test_label: ":androidApp:testDebugUnitTest"
       assemble_cmd: ":androidApp:assembleDebug"
