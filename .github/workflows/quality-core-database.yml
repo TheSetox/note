@@ -47,8 +47,8 @@ jobs:
       module_key: core-database
       module_title: core:database Module
       runner: ubuntu-latest
-      lint_cmd: ":core:database:lintDebug"
-      lint_label: ":core:database:lintDebug"
+      lint_cmd: ":core:database:lintAnalyzeAndroidHostTest"
+      lint_label: ":core:database:lintAnalyzeAndroidHostTest"
       test_cmd: ":core:database:allTests"
       test_label: ":core:database:allTests"
       assemble_cmd: ":core:database:assemble"

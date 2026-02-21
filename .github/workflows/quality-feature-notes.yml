@@ -47,8 +47,8 @@ jobs:
       module_key: feature-notes
       module_title: feature:notes Module
       runner: ubuntu-latest
-      lint_cmd: ":feature:notes:lintDebug"
-      lint_label: ":feature:notes:lintDebug"
+      lint_cmd: ":feature:notes:lintAnalyzeAndroidHostTest"
+      lint_label: ":feature:notes:lintAnalyzeAndroidHostTest"
       test_cmd: ":feature:notes:allTests"
       test_label: ":feature:notes:allTests"
       assemble_cmd: ":feature:notes:assemble"

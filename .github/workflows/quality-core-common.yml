@@ -47,8 +47,8 @@ jobs:
       module_key: core-common
       module_title: core:common Module
       runner: ubuntu-latest
-      lint_cmd: ":core:common:lintDebug"
-      lint_label: ":core:common:lintDebug"
+      lint_cmd: ":core:common:lintAnalyzeAndroidHostTest"
+      lint_label: ":core:common:lintAnalyzeAndroidHostTest"
       test_cmd: ":core:common:allTests"
       test_label: ":core:common:allTests"
       assemble_cmd: ":core:common:assemble"
