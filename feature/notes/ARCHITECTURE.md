@@ -95,3 +95,4 @@ sequenceDiagram
 
 ## Quality Tasks
 - Run module formatting with `./gradlew :feature:notes:spotlessCheck`.
+- Keep KDoc on repository/viewmodel/screen contracts aligned with behavior changes.

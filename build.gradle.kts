@@ -37,11 +37,18 @@ subprojects {
     if (name != "iosApp") {
         apply(plugin = "io.gitlab.arturbosch.detekt")
 
+        if (path != ":tools:detekt-rules") {
+            dependencies {
+                add("detektPlugins", project(":tools:detekt-rules"))
+            }
+        }
+
         extensions.configure<DetektExtension> {
             buildUponDefaultConfig = true
             allRules = false
             autoCorrect = false
             ignoreFailures = false
+            config.setFrom(rootProject.file("config/detekt/detekt.yml"))
         }
 
         tasks.withType<Detekt>().configureEach {

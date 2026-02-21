@@ -10,6 +10,9 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlin.math.max
 
+/**
+ * In-memory repository implementation used for tests, previews, and fake wiring.
+ */
 class InMemoryNotesRepository(
     private val dispatchers: AppDispatchers,
     initialNotes: List<Note> = emptyList(),

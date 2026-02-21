@@ -1,0 +1,17 @@
+config:
+  validation: true
+  excludes: 'compose-custom,compose-custom>.*>.*'
+
+naming:
+  FunctionNaming:
+    ignoreAnnotated:
+      - Composable
+
+style:
+  UnusedPrivateMember:
+    ignoreAnnotated:
+      - Preview
+
+compose-custom:
+  ComposeFunctionNaming:
+    active: true

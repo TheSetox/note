@@ -18,6 +18,13 @@ graph TD
 
   coreDatabase --> coreCommon
   coreUi --> coreCommon
+
+  androidApp -. "detektPlugins" .-> toolsDetektRules["tools:detekt-rules"]
+  desktopApp -. "detektPlugins" .-> toolsDetektRules
+  coreCommon -. "detektPlugins" .-> toolsDetektRules
+  coreDatabase -. "detektPlugins" .-> toolsDetektRules
+  coreUi -. "detektPlugins" .-> toolsDetektRules
+  featureNotes -. "detektPlugins" .-> toolsDetektRules
 ```
 
 ## Module Docs
@@ -31,3 +38,4 @@ graph TD
 | `core:database` | [core/database/README.md](core/database/README.md) | [core/database/ARCHITECTURE.md](core/database/ARCHITECTURE.md) |
 | `core:ui` | [core/ui/README.md](core/ui/README.md) | [core/ui/ARCHITECTURE.md](core/ui/ARCHITECTURE.md) |
 | `feature:notes` | [feature/notes/README.md](feature/notes/README.md) | [feature/notes/ARCHITECTURE.md](feature/notes/ARCHITECTURE.md) |
+| `tools:detekt-rules` | [tools/detekt-rules/README.md](tools/detekt-rules/README.md) | [tools/detekt-rules/ARCHITECTURE.md](tools/detekt-rules/ARCHITECTURE.md) |

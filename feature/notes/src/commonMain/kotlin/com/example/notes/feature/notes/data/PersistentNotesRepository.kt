@@ -12,6 +12,9 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlin.math.max
 
+/**
+ * File-backed repository implementation that persists notes through [NotesLocalDataSource].
+ */
 class PersistentNotesRepository(
     private val localDataSource: NotesLocalDataSource,
     private val dispatchers: AppDispatchers,
