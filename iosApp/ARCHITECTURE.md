@@ -43,3 +43,6 @@ sequenceDiagram
   Kotlin-->>Bridge: Compose UIViewController
   Bridge-->>iOS: render shared Kotlin UI
 ```
+
+## Quality Tasks
+- Run module formatting with `./gradlew :iosApp:spotlessCheck`.

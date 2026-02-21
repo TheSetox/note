@@ -22,14 +22,12 @@ allprojects {
     version = "0.1.0"
 }
 
+val ktlintVersion = libs.versions.ktlint.get()
+
 spotless {
-    kotlin {
-        target("**/*.kt")
-        ktlint(libs.versions.ktlint.get())
-    }
     kotlinGradle {
-        target("**/*.kts")
-        ktlint(libs.versions.ktlint.get())
+        target("*.gradle.kts", "gradle/**/*.kts")
+        ktlint(ktlintVersion)
     }
 }
 

@@ -6,6 +6,8 @@ plugins {
     alias(libs.plugins.compose.hot.reload)
 }
 
+apply(from = rootProject.file("gradle/spotless-module.gradle.kts"))
+
 kotlin {
     jvmToolchain(17)
     androidLibrary {
@@ -44,16 +46,21 @@ kotlin {
             implementation(projects.core.common)
             implementation(projects.core.database)
             implementation(projects.core.ui)
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material3)
-            implementation(compose.ui)
+            implementation(libs.compose.ui.tooling.preview)
+            implementation(libs.compose.runtime)
+            implementation(libs.compose.foundation)
+            implementation(libs.compose.material3)
+            implementation(libs.compose.ui)
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.koin.core)
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
             implementation(libs.kotlinx.coroutines.test)
+        }
+        androidMain.dependencies {
+            implementation(libs.compose.ui.tooling)
+            implementation(libs.compose.ui.tooling.preview)
         }
     }
 }

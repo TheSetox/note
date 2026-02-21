@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
 }
 
+apply(from = rootProject.file("gradle/spotless-module.gradle.kts"))
+
 kotlin {
     jvmToolchain(17)
     androidLibrary {

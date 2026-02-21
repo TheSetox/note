@@ -33,3 +33,6 @@ sequenceDiagram
   VM->>Coroutine: withContext(io) { ... }
   Coroutine-->>VM: completes background work
 ```
+
+## Quality Tasks
+- Run module formatting with `./gradlew :core:common:spotlessCheck`.

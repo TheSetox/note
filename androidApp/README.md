@@ -23,7 +23,8 @@ graph LR
 
 ## Usage Notes
 - Build with `./gradlew :androidApp:assembleDebug`.
-- `MainActivity` hosts Compose content and renders shared `notesAppRoot()` UI.
+- `MainActivity` hosts Compose content and renders shared `NotesAppRoot()` UI.
+- Module-level format tasks are available: `:androidApp:spotlessCheck` and `:androidApp:spotlessApply`.
 
 ## Architecture Docs
 - [ARCHITECTURE.md](ARCHITECTURE.md)

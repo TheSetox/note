@@ -20,6 +20,7 @@ graph LR
 - Build from Gradle with `./gradlew :iosApp:buildIosSimulatorApp`.
 - Open `iosApp.xcodeproj` and run scheme `iosApp` in Simulator.
 - `ContentView` bridges into Kotlin via `makeNotesViewController()` and renders shared Compose UI.
+- Module-level format tasks are available: `:iosApp:spotlessCheck` and `:iosApp:spotlessApply`.
 
 ## Architecture Docs
 - [ARCHITECTURE.md](ARCHITECTURE.md)

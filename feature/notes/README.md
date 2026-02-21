@@ -8,7 +8,7 @@ Notes feature domain/data/presentation logic for list management, CRUD, filterin
 - `NotesRepository` repository contract.
 - `NotesListViewModel`, `NotesListUiState`, and `NotesListUiEffect`.
 - `notesProdModule`, `notesTestModule`, `notesFakeModule` for Koin wiring.
-- `notesAppRoot()` shared Compose root.
+- `NotesAppRoot()` shared Compose root.
 - `makeNotesViewController()` iOS `UIViewController` bridge for shared Compose UI.
 
 ## Dependencies
@@ -16,6 +16,8 @@ Notes feature domain/data/presentation logic for list management, CRUD, filterin
 - `core:database`
 - `core:ui`
 - `compose-runtime`, `compose-foundation`, `compose-material3`, `compose-ui`
+- `compose-ui-tooling-preview` (commonMain preview annotation support)
+- `compose-ui-tooling` (androidMain preview tooling support)
 - `kotlinx-coroutines-core`
 - `koin-core`
 
@@ -37,6 +39,8 @@ graph LR
 - Delete must be user-confirmed by `requestDelete` then `confirmDelete`.
 - Filtering and search are stateful and retained in the view model state.
 - Production repository is file-backed through `NotesLocalDataSource`; tests/fakes can still use `InMemoryNotesRepository`.
+- `NotesAppRoot()` includes `NotesAppRootPreview()` for Compose preview in IDE.
+- Module-level format tasks are available: `:feature:notes:spotlessCheck` and `:feature:notes:spotlessApply`.
 
 ## Architecture Docs
 - [ARCHITECTURE.md](ARCHITECTURE.md)

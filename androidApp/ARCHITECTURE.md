@@ -10,7 +10,7 @@ classDiagram
 
   class NotesAppRoot {
     <<Composable>>
-    +notesAppRoot()
+    +NotesAppRoot()
   }
 
   class NotesSharedBridge {
@@ -27,12 +27,15 @@ classDiagram
 sequenceDiagram
   participant Android as Android Runtime
   participant Activity as MainActivity
-  participant Compose as notesAppRoot()
+  participant Compose as NotesAppRoot()
   participant Bridge as NotesSharedBridge
 
   Android->>Activity: onCreate()
-  Activity->>Compose: setContent { notesAppRoot() }
+  Activity->>Compose: setContent { NotesAppRoot() }
   Compose->>Bridge: bootstrapMessage()
   Bridge-->>Compose: module_id:entry_point_id
   Compose-->>Android: Render shared UI
 ```
+
+## Quality Tasks
+- Run module formatting with `./gradlew :androidApp:spotlessCheck`.

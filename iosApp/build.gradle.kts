@@ -2,6 +2,8 @@ plugins {
     base
 }
 
+apply(from = rootProject.file("gradle/spotless-module.gradle.kts"))
+
 tasks.register<Exec>("buildIosSimulatorApp") {
     workingDir = projectDir
     commandLine(

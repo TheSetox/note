@@ -54,3 +54,6 @@ sequenceDiagram
   FS-->>Local: write complete
   Local-->>Repo: success
 ```
+
+## Quality Tasks
+- Run module formatting with `./gradlew :core:database:spotlessCheck`.

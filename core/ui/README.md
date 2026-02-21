@@ -21,6 +21,7 @@ graph LR
 
 ## Usage Notes
 - Platform apps can use this module to confirm shared app bootstrap wiring.
+- Module-level format tasks are available: `:core:ui:spotlessCheck` and `:core:ui:spotlessApply`.
 
 ## Architecture Docs
 - [ARCHITECTURE.md](ARCHITECTURE.md)

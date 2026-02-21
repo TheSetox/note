@@ -6,6 +6,8 @@ plugins {
     application
 }
 
+apply(from = rootProject.file("gradle/spotless-module.gradle.kts"))
+
 kotlin {
     jvmToolchain(17)
 }

@@ -29,3 +29,6 @@ sequenceDiagram
   Bootstrap-->>Bridge: notes_kmp_foundation
   Bridge-->>App: module_id:entry_point_id
 ```
+
+## Quality Tasks
+- Run module formatting with `./gradlew :core:ui:spotlessCheck`.

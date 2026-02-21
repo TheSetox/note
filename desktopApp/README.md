@@ -20,7 +20,8 @@ graph LR
 
 ## Usage Notes
 - Run with `./gradlew :desktopApp:run`.
-- Launches a Compose Desktop window and renders shared `notesAppRoot()` UI.
+- Launches a Compose Desktop window and renders shared `NotesAppRoot()` UI.
+- Module-level format tasks are available: `:desktopApp:spotlessCheck` and `:desktopApp:spotlessApply`.
 
 ## Architecture Docs
 - [ARCHITECTURE.md](ARCHITECTURE.md)
