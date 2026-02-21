@@ -1,3 +1,6 @@
+import io.gitlab.arturbosch.detekt.Detekt
+import io.gitlab.arturbosch.detekt.extensions.DetektExtension
+
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.android.library) apply false
@@ -11,6 +14,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.spotless)
     alias(libs.plugins.kover)
+    alias(libs.plugins.detekt) apply false
 }
 
 allprojects {
@@ -31,4 +35,28 @@ spotless {
 
 subprojects {
     apply(plugin = "org.jetbrains.kotlinx.kover")
+
+    if (name != "iosApp") {
+        apply(plugin = "io.gitlab.arturbosch.detekt")
+
+        extensions.configure<DetektExtension> {
+            buildUponDefaultConfig = true
+            allRules = false
+            autoCorrect = false
+            ignoreFailures = false
+        }
+
+        tasks.withType<Detekt>().configureEach {
+            setSource(files(projectDir.resolve("src")))
+            include("**/*.kt", "**/*.kts")
+            exclude("**/build/**")
+
+            reports {
+                html.required.set(true)
+                xml.required.set(true)
+                sarif.required.set(true)
+                md.required.set(false)
+            }
+        }
+    }
 }

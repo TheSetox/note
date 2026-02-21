@@ -49,13 +49,15 @@ jobs:
       runner: ubuntu-latest
       lint_cmd: "spotlessCheck"
       lint_label: "spotlessCheck"
+      detekt_cmd: ":androidApp:detekt"
+      detekt_label: ":androidApp:detekt"
       test_cmd: ":androidApp:testDebugUnitTest"
       test_label: ":androidApp:testDebugUnitTest"
       assemble_cmd: ":androidApp:assembleDebug"
       assemble_label: ":androidApp:assembleDebug"
-      kover_cmd: ":androidApp:koverXmlReport"
-      kover_label: ":androidApp:koverXmlReport"
-      kover_report_path: androidApp/build/reports/kover/report.xml
+      kover_cmd: ":androidApp:koverHtmlReport"
+      kover_label: ":androidApp:koverHtmlReport"
+      kover_html_report_dir: androidApp/build/reports/kover/html
       coverage_module: androidApp
       coverage_title: Android Line Coverage
     secrets: inherit

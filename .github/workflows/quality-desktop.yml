@@ -49,13 +49,15 @@ jobs:
       runner: ubuntu-latest
       lint_cmd: "spotlessCheck"
       lint_label: "spotlessCheck"
+      detekt_cmd: ":desktopApp:detekt"
+      detekt_label: ":desktopApp:detekt"
       test_cmd: ":desktopApp:test"
       test_label: ":desktopApp:test"
       assemble_cmd: ":desktopApp:assemble"
       assemble_label: ":desktopApp:assemble"
-      kover_cmd: ":desktopApp:koverXmlReport"
-      kover_label: ":desktopApp:koverXmlReport"
-      kover_report_path: desktopApp/build/reports/kover/report.xml
+      kover_cmd: ":desktopApp:koverHtmlReport"
+      kover_label: ":desktopApp:koverHtmlReport"
+      kover_html_report_dir: desktopApp/build/reports/kover/html
       coverage_module: desktopApp
       coverage_title: Desktop Line Coverage
     secrets: inherit
