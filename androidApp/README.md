@@ -1,7 +1,7 @@
 # androidApp
 
 ## Purpose
-Android entry module for launching the bootstrap app.
+Android entry module for launching the shared notes UI.
 
 ## Public Contracts
 - `MainActivity`
@@ -13,9 +13,20 @@ Android entry module for launching the bootstrap app.
 - `androidx.core:core-ktx`
 - `androidx.appcompat:appcompat`
 
+## Module Dependency Diagram
+
+```mermaid
+graph LR
+  androidApp["androidApp"] --> coreUi["core:ui"]
+  androidApp --> featureNotes["feature:notes"]
+```
+
 ## Usage Notes
 - Build with `./gradlew :androidApp:assembleDebug`.
-- `MainActivity` hosts Compose content and renders shared `feature:notes` `notesAppRoot()` UI.
+- `MainActivity` hosts Compose content and renders shared `notesAppRoot()` UI.
+
+## Architecture Docs
+- [ARCHITECTURE.md](ARCHITECTURE.md)
 
 ## Fake/Mock Notes
 - Uses shared modules and can be wired with fake DI modules in later PRs.
