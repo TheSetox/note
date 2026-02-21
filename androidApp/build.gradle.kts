@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
 }
 
@@ -33,15 +32,15 @@ android {
     buildFeatures {
         compose = true
     }
+}
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
+kotlin {
+    jvmToolchain(17)
 }
 
 dependencies {
-    implementation(project(":core:ui"))
-    implementation(project(":feature:notes"))
+    implementation(projects.core.ui)
+    implementation(projects.feature.notes)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

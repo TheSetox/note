@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.compose.multiplatform)
+    alias(libs.plugins.compose.hot.reload)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.jvm)
     application
@@ -14,7 +15,7 @@ application {
 }
 
 dependencies {
-    implementation(project(":core:ui"))
-    implementation(project(":feature:notes"))
+    implementation(projects.core.ui)
+    implementation(projects.feature.notes)
     implementation(compose.desktop.currentOs)
 }
