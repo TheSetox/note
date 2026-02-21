@@ -21,6 +21,7 @@ graph LR
 
 ## Usage Notes
 - Inject `AppDispatchers` into repositories and view models instead of hardcoding dispatchers.
+- Module-level format tasks are available: `:core:common:spotlessCheck` and `:core:common:spotlessApply`.
 
 ## Architecture Docs
 - [ARCHITECTURE.md](ARCHITECTURE.md)

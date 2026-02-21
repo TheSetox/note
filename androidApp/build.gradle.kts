@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.compose.compiler)
 }
 
+apply(from = rootProject.file("gradle/spotless-module.gradle.kts"))
+
 android {
     namespace = "com.example.notes.android"
     compileSdk =

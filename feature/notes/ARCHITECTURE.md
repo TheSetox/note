@@ -37,6 +37,12 @@ classDiagram
     +bootstrapMessage() String
   }
 
+  class NotesAppRoot {
+    <<composable>>
+    +NotesAppRoot()
+    +NotesAppRootPreview()
+  }
+
   class AppBootstrapInfo {
     <<object>>
     +MODULE_ID: String
@@ -47,6 +53,7 @@ classDiagram
   NotesRepository <|.. PersistentNotesRepository
   NotesRepository <|.. InMemoryNotesRepository
   PersistentNotesRepository --> NotesLocalDataSource
+  NotesAppRoot --> NotesSharedBridge
   NotesSharedBridge --> AppBootstrapInfo
 ```
 
@@ -69,3 +76,22 @@ sequenceDiagram
   Flow-->>VM: notes list
   VM-->>UI: updated uiState + SAVE_SUCCESS effect
 ```
+
+## Preview Flow
+
+```mermaid
+sequenceDiagram
+  participant IDE as IDE Preview
+  participant Preview as NotesAppRootPreview()
+  participant Root as NotesAppRoot()
+  participant Bridge as NotesSharedBridge
+
+  IDE->>Preview: render
+  Preview->>Root: invoke
+  Root->>Bridge: bootstrapMessage()
+  Bridge-->>Root: message
+  Root-->>IDE: rendered composable tree
+```
+
+## Quality Tasks
+- Run module formatting with `./gradlew :feature:notes:spotlessCheck`.

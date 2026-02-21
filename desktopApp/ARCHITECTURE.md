@@ -14,7 +14,7 @@ classDiagram
 
   class NotesAppRoot {
     <<Composable>>
-    +notesAppRoot()
+    +NotesAppRoot()
   }
 
   MainKt --> NotesSharedBridge : window title
@@ -29,12 +29,15 @@ sequenceDiagram
   participant Entry as main()
   participant Bridge as NotesSharedBridge
   participant Window as Compose Window
-  participant Compose as notesAppRoot()
+  participant Compose as NotesAppRoot()
 
   User->>Entry: Launch app
   Entry->>Bridge: bootstrapMessage()
   Bridge-->>Entry: title text
   Entry->>Window: create Window(title)
-  Window->>Compose: Render notesAppRoot()
+  Window->>Compose: Render NotesAppRoot()
   Compose-->>User: Shared UI visible
 ```
+
+## Quality Tasks
+- Run module formatting with `./gradlew :desktopApp:spotlessCheck`.
