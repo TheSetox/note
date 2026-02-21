@@ -25,6 +25,7 @@ graph LR
 ## Usage Notes
 - Data is stored in `notes-data/notes.json` by default.
 - Writes are full snapshot rewrites of the current notes list.
+- `NotesLocalDataSource` and `JsonFileNotesLocalDataSource` include KDoc for persistence contract clarity.
 - Module-level format tasks are available: `:core:database:spotlessCheck` and `:core:database:spotlessApply`.
 
 ## Architecture Docs

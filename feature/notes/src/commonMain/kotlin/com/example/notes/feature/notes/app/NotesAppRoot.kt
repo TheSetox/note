@@ -9,6 +9,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 
+/**
+ * Root Compose screen for the notes feature used by Android, iOS, and Desktop entry points.
+ */
 @Composable
 fun NotesAppRoot() {
     MaterialTheme {
@@ -21,6 +24,9 @@ fun NotesAppRoot() {
     }
 }
 
+/**
+ * IDE preview for [NotesAppRoot].
+ */
 @Preview
 @Composable
 private fun NotesAppRootPreview() {

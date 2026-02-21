@@ -57,3 +57,4 @@ sequenceDiagram
 
 ## Quality Tasks
 - Run module formatting with `./gradlew :core:database:spotlessCheck`.
+- Keep data source contract KDoc synchronized with persistence behavior.

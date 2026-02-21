@@ -10,6 +10,9 @@ import okio.Path
 import okio.Path.Companion.toPath
 import okio.buffer
 
+/**
+ * JSON file implementation of [NotesLocalDataSource] using Okio file APIs.
+ */
 class JsonFileNotesLocalDataSource(
     private val dispatchers: AppDispatchers,
     filePathValue: String = DEFAULT_NOTES_FILE_PATH,
@@ -64,6 +67,9 @@ class JsonFileNotesLocalDataSource(
     }
 }
 
+/**
+ * Default relative storage path for notes JSON payload.
+ */
 const val DEFAULT_NOTES_FILE_PATH = "notes-data/notes.json"
 
 private object JsonConfig {

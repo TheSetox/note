@@ -39,3 +39,4 @@ sequenceDiagram
 
 ## Quality Tasks
 - Run module formatting with `./gradlew :androidApp:spotlessCheck`.
+- Keep entry-point KDoc updated when activity responsibilities change.
