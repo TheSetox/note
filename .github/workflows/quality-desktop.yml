@@ -47,6 +47,8 @@ jobs:
       module_key: desktop
       module_title: Desktop Module
       runner: ubuntu-latest
+      lint_cmd: "spotlessCheck"
+      lint_label: "spotlessCheck"
       test_cmd: ":desktopApp:test"
       test_label: ":desktopApp:test"
       assemble_cmd: ":desktopApp:assemble"
