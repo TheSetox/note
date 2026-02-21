@@ -107,25 +107,37 @@ jobs:
         id: lint
         if: ${{ inputs.lint_cmd != '' }}
         continue-on-error: true
-        run: ./gradlew ${{ inputs.lint_cmd }}
+        shell: bash
+        run: |
+          set -o pipefail
+          ./gradlew ${{ inputs.lint_cmd }} 2>&1 | tee "$RUNNER_TEMP/${{ inputs.module_key }}-spotless.log"
 
       - name: Run test check
         id: test
         if: ${{ inputs.test_cmd != '' }}
         continue-on-error: true
-        run: ./gradlew ${{ inputs.test_cmd }}
+        shell: bash
+        run: |
+          set -o pipefail
+          ./gradlew ${{ inputs.test_cmd }} 2>&1 | tee "$RUNNER_TEMP/${{ inputs.module_key }}-test.log"
 
       - name: Run assemble/build check
         id: assemble
         if: ${{ inputs.assemble_cmd != '' }}
         continue-on-error: true
-        run: ./gradlew ${{ inputs.assemble_cmd }}
+        shell: bash
+        run: |
+          set -o pipefail
+          ./gradlew ${{ inputs.assemble_cmd }} 2>&1 | tee "$RUNNER_TEMP/${{ inputs.module_key }}-assemble.log"
 
       - name: Run coverage check
         id: kover
         if: ${{ inputs.kover_cmd != '' }}
         continue-on-error: true
-        run: ./gradlew ${{ inputs.kover_cmd }}
+        shell: bash
+        run: |
+          set -o pipefail
+          ./gradlew ${{ inputs.kover_cmd }} 2>&1 | tee "$RUNNER_TEMP/${{ inputs.module_key }}-kover.log"
 
       - name: Collect outputs
         id: collect
@@ -286,12 +298,45 @@ jobs:
             exit 1
           fi
 
-      - name: Upload reports on failure
+      - name: Upload Spotless outputs
+        if: always() && inputs.lint_cmd != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.module_key }}-spotless
+          path: |
+            ${{ runner.temp }}/${{ inputs.module_key }}-spotless.log
+            **/build/reports/spotless/**
+          if-no-files-found: ignore
+
+      - name: Upload test outputs
+        if: always() && inputs.test_cmd != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.module_key }}-test
+          path: |
+            ${{ runner.temp }}/${{ inputs.module_key }}-test.log
+            **/build/test-results/**
+            **/build/reports/tests/**
+          if-no-files-found: ignore
+
+      - name: Upload Kover outputs
+        if: always() && inputs.kover_cmd != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.module_key }}-kover
+          path: |
+            ${{ runner.temp }}/${{ inputs.module_key }}-kover.log
+            ${{ inputs.kover_report_path }}
+            **/build/reports/kover/**
+          if-no-files-found: ignore
+
+      - name: Upload quality bundle on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.module_key }}-quality-reports
           path: |
+            ${{ runner.temp }}/${{ inputs.module_key }}-assemble.log
             **/build/reports/**
             **/build/test-results/**
           if-no-files-found: ignore
