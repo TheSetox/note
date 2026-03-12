@@ -1,5 +1,12 @@
 # iosApp Architecture
 
+## Module Dependency Diagram
+
+```mermaid
+graph LR
+  iosApp["iosApp"] -. "bridges NotesShared framework" .-> featureNotes["feature:notes"]
+```
+
 ## Class Diagram
 
 ```mermaid

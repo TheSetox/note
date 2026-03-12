@@ -1,5 +1,17 @@
 # tools:detekt-rules Architecture
 
+## Module Dependency Diagram
+
+```mermaid
+graph LR
+  androidApp["androidApp"] -. "detektPlugins" .-> toolsDetektRules["tools:detekt-rules"]
+  desktopApp["desktopApp"] -. "detektPlugins" .-> toolsDetektRules
+  coreCommon["core:common"] -. "detektPlugins" .-> toolsDetektRules
+  coreDatabase["core:database"] -. "detektPlugins" .-> toolsDetektRules
+  coreUi["core:ui"] -. "detektPlugins" .-> toolsDetektRules
+  featureNotes["feature:notes"] -. "detektPlugins" .-> toolsDetektRules
+```
+
 ## Class Diagram
 
 ```mermaid
