@@ -1,5 +1,13 @@
 # desktopApp Architecture
 
+## Module Dependency Diagram
+
+```mermaid
+graph LR
+  desktopApp["desktopApp"] --> coreUi["core:ui"]
+  desktopApp --> featureNotes["feature:notes"]
+```
+
 ## Class Diagram
 
 ```mermaid

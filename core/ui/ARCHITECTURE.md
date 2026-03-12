@@ -1,5 +1,15 @@
 # core:ui Architecture
 
+## Module Dependency Diagram
+
+```mermaid
+graph LR
+  androidApp["androidApp"] --> coreUi["core:ui"]
+  desktopApp["desktopApp"] --> coreUi
+  featureNotes["feature:notes"] --> coreUi
+  coreUi --> coreCommon["core:common"]
+```
+
 ## Class Diagram
 
 ```mermaid

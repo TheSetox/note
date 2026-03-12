@@ -1,5 +1,18 @@
 # feature:notes Architecture
 
+## Module Dependency Diagram
+
+```mermaid
+graph LR
+  androidApp["androidApp"] --> featureNotes["feature:notes"]
+  desktopApp["desktopApp"] --> featureNotes
+  iosApp["iosApp"] -. "bridges NotesShared framework" .-> featureNotes
+
+  featureNotes --> coreCommon["core:common"]
+  featureNotes --> coreDatabase["core:database"]
+  featureNotes --> coreUi["core:ui"]
+```
+
 ## Class Diagram
 
 ```mermaid

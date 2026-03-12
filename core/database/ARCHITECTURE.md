@@ -1,5 +1,13 @@
 # core:database Architecture
 
+## Module Dependency Diagram
+
+```mermaid
+graph LR
+  featureNotes["feature:notes"] --> coreDatabase["core:database"]
+  coreDatabase --> coreCommon["core:common"]
+```
+
 ## Class Diagram
 
 ```mermaid
