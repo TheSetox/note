@@ -3,6 +3,7 @@
 package com.example.notes.feature.notes.app
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -28,6 +29,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -40,8 +42,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
@@ -84,7 +90,7 @@ fun NotesEditorScreen(
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 20.dp),
+            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp),
         ) {
             item {
                 NotesEditorTopBar(
@@ -97,13 +103,13 @@ fun NotesEditorScreen(
                     onEditorCompletedChange = onEditorCompletedChange,
                     onRequestDelete = onRequestDelete,
                 )
-                Spacer(modifier = Modifier.height(18.dp))
+                Spacer(modifier = Modifier.height(16.dp))
                 ColorSwatchRow(
                     selectedColorKey = editorState.selectedColorKey,
                     copy = copy,
                     onColorSelected = onColorSelected,
                 )
-                Spacer(modifier = Modifier.height(28.dp))
+                Spacer(modifier = Modifier.height(26.dp))
                 EditorTitleField(
                     value = editorState.title,
                     placeholder = copy.titlePlaceholder,
@@ -117,7 +123,7 @@ fun NotesEditorScreen(
                     textColor = palette.content,
                     onValueChange = onContentChange,
                 )
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = editorState.updatedAt.toEditedLabel(copy),
                     style = MaterialTheme.typography.labelSmall,
@@ -200,26 +206,44 @@ private fun NotesEditorTopBar(
     onRequestDelete: (String) -> Unit,
 ) {
     var isMenuExpanded by remember { mutableStateOf(false) }
+    val actionColor = MaterialTheme.colorScheme.onSurface
+    val disabledActionColor = actionColor.copy(alpha = 0.34f)
 
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        TextButton(onClick = onBackClick) {
-            Text(text = copy.backAction)
+        IconButton(
+            onClick = onBackClick,
+            modifier =
+                Modifier
+                    .size(44.dp)
+                    .semantics { contentDescription = copy.backAction },
+        ) {
+            BackIcon(color = actionColor)
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
-            TextButton(
+            IconButton(
                 enabled = canSave,
                 onClick = onSaveClick,
+                modifier =
+                    Modifier
+                        .size(44.dp)
+                        .semantics { contentDescription = copy.saveAction },
             ) {
-                Text(text = copy.saveAction)
+                SaveIcon(color = if (canSave) actionColor else disabledActionColor)
             }
             Spacer(modifier = Modifier.width(4.dp))
             Box {
-                TextButton(onClick = { isMenuExpanded = true }) {
-                    Text(text = copy.moreAction)
+                IconButton(
+                    onClick = { isMenuExpanded = true },
+                    modifier =
+                        Modifier
+                            .size(44.dp)
+                            .semantics { contentDescription = copy.moreAction },
+                ) {
+                    MoreIcon(color = actionColor)
                 }
                 DropdownMenu(
                     expanded = isMenuExpanded,
@@ -261,6 +285,76 @@ private fun NotesEditorTopBar(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun BackIcon(color: Color) {
+    Canvas(modifier = Modifier.size(22.dp)) {
+        val strokeWidth = size.minDimension * ICON_STROKE_WIDTH_RATIO
+        drawLine(
+            color = color,
+            start = Offset(size.width * 0.7f, size.height * 0.22f),
+            end = Offset(size.width * 0.32f, size.height * 0.5f),
+            strokeWidth = strokeWidth,
+            cap = StrokeCap.Round,
+        )
+        drawLine(
+            color = color,
+            start = Offset(size.width * 0.32f, size.height * 0.5f),
+            end = Offset(size.width * 0.7f, size.height * 0.78f),
+            strokeWidth = strokeWidth,
+            cap = StrokeCap.Round,
+        )
+        drawLine(
+            color = color,
+            start = Offset(size.width * 0.34f, size.height * 0.5f),
+            end = Offset(size.width * 0.82f, size.height * 0.5f),
+            strokeWidth = strokeWidth,
+            cap = StrokeCap.Round,
+        )
+    }
+}
+
+@Composable
+private fun SaveIcon(color: Color) {
+    Canvas(modifier = Modifier.size(22.dp)) {
+        val strokeWidth = size.minDimension * ICON_STROKE_WIDTH_RATIO
+        val inset = size.minDimension * 0.18f
+        drawRect(
+            color = color,
+            topLeft = Offset(inset, inset),
+            size =
+                Size(
+                    width = size.width - (inset * 2),
+                    height = size.height - (inset * 2),
+                ),
+            style = Stroke(width = strokeWidth),
+        )
+        drawLine(
+            color = color,
+            start = Offset(size.width * 0.36f, size.height * 0.22f),
+            end = Offset(size.width * 0.64f, size.height * 0.22f),
+            strokeWidth = strokeWidth,
+            cap = StrokeCap.Round,
+        )
+        drawLine(
+            color = color,
+            start = Offset(size.width * 0.34f, size.height * 0.68f),
+            end = Offset(size.width * 0.66f, size.height * 0.68f),
+            strokeWidth = strokeWidth,
+            cap = StrokeCap.Round,
+        )
+    }
+}
+
+@Composable
+private fun MoreIcon(color: Color) {
+    Canvas(modifier = Modifier.size(22.dp)) {
+        val radius = size.minDimension * 0.07f
+        drawCircle(color = color, radius = radius, center = Offset(size.width * 0.5f, size.height * 0.26f))
+        drawCircle(color = color, radius = radius, center = Offset(size.width * 0.5f, size.height * 0.5f))
+        drawCircle(color = color, radius = radius, center = Offset(size.width * 0.5f, size.height * 0.74f))
     }
 }
 
@@ -426,7 +520,7 @@ private fun EditorBodyField(
             MaterialTheme.typography.bodyLarge.copy(
                 color = textColor,
             ),
-        minHeight = 260.dp,
+        minHeight = 360.dp,
         onValueChange = onValueChange,
     )
 }
@@ -540,13 +634,6 @@ private fun NoteFilter.label(copy: NotesUiCopy): String =
         NoteFilter.COMPLETED -> copy.completedFilterLabel
     }
 
-private fun Long?.toEditedLabel(copy: NotesUiCopy): String =
-    if (this == null) {
-        copy.unsavedTimestamp
-    } else {
-        "${copy.editedPrefix} #$this"
-    }
-
 private data class NoteEditorPalette(
     val key: String,
     val background: Color,
@@ -598,6 +685,8 @@ private fun noteEditorPaletteFor(colorKey: String): NoteEditorPalette =
     noteEditorPalettes.firstOrNull { palette -> palette.key == colorKey }
         ?: noteEditorPalettes.first { palette -> palette.key == NoteColorKeys.LAVENDER }
 
+private const val ICON_STROKE_WIDTH_RATIO = 0.08f
+
 @Preview
 @Composable
 private fun NotesEditorScreenPreview() {
@@ -614,7 +703,7 @@ private fun NotesEditorScreenPreview() {
                             "3. Personal finance tracker",
                         ).joinToString(separator = "\n"),
                     selectedColorKey = NoteColorKeys.LAVENDER,
-                    updatedAt = 1L,
+                    updatedAt = 1_777_071_491_000L,
                 ),
             lastMessage = null,
             copy = NotesUiCopy.English,

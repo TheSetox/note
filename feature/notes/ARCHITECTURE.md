@@ -58,6 +58,11 @@ classDiagram
     +setCompleted(id, isCompleted)
   }
 
+  class NoteTimestampProvider {
+    <<interface>>
+    +nowMillis() Long
+  }
+
   class NotesEditorScreen {
     <<composable>>
     +NotesEditorScreen(uiState, editorState, copy, actions)
@@ -96,6 +101,8 @@ classDiagram
   NotesListViewModel --> NotesRepository
   NotesRepository <|.. PersistentNotesRepository
   NotesRepository <|.. InMemoryNotesRepository
+  PersistentNotesRepository --> NoteTimestampProvider
+  InMemoryNotesRepository --> NoteTimestampProvider
   PersistentNotesRepository --> NotesLocalDataSource
 ```
 
@@ -111,6 +118,7 @@ sequenceDiagram
 
   UI->>VM: saveEditor()
   VM->>Repo: addNote(title, content, colorKey)
+  Repo->>Repo: timestampProvider.nowMillis()
   Repo->>Local: writeAll(updatedNotes)
   Local-->>Repo: success
   Repo-->>VM: Result.Success(Note)

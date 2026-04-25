@@ -19,6 +19,7 @@ import kotlin.math.max
 class PersistentNotesRepository(
     private val localDataSource: NotesLocalDataSource,
     private val dispatchers: AppDispatchers,
+    private val timestampProvider: NoteTimestampProvider = SystemNoteTimestampProvider,
 ) : NotesRepository {
     private val writeLock = Mutex()
     private val notes = MutableStateFlow<List<Note>>(emptyList())
@@ -169,7 +170,7 @@ class PersistentNotesRepository(
     }
 
     private fun nextTimestamp(): Long {
-        clock += 1
+        clock = max(timestampProvider.nowMillis(), clock + 1)
         return clock
     }
 }

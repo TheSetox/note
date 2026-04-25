@@ -90,11 +90,53 @@ class InMemoryNotesRepositoryTest {
             )
         }
 
+    @Test
+    fun mutations_useInjectedTimestampProvider() =
+        runTest(testDispatcher) {
+            val timestampProvider =
+                SequenceTimestampProvider(
+                    1_777_071_491_000L,
+                    1_777_071_492_000L,
+                    1_777_071_493_000L,
+                )
+            val repository =
+                InMemoryNotesRepository(
+                    dispatchers = dispatchers,
+                    timestampProvider = timestampProvider,
+                )
+
+            val added = repository.addNote(title = "Timed", content = "Draft").getOrThrow()
+            assertEquals(1_777_071_491_000L, added.createdAt)
+            assertEquals(1_777_071_491_000L, added.updatedAt)
+
+            val updated =
+                repository
+                    .updateNote(id = added.id, title = "Timed updated", content = "Saved")
+                    .getOrThrow()
+            assertEquals(1_777_071_491_000L, updated.createdAt)
+            assertEquals(1_777_071_492_000L, updated.updatedAt)
+
+            val completed = repository.setCompleted(id = added.id, isCompleted = true).getOrThrow()
+            assertEquals(1_777_071_493_000L, completed.updatedAt)
+        }
+
     private class TestAppDispatchers(
         testDispatcher: TestDispatcher,
     ) : AppDispatchers {
         override val io = testDispatcher
         override val default = testDispatcher
         override val main = testDispatcher
+    }
+
+    private class SequenceTimestampProvider(
+        private vararg val timestamps: Long,
+    ) : NoteTimestampProvider {
+        private var index = 0
+
+        override fun nowMillis(): Long {
+            val timestamp = timestamps.getOrElse(index) { timestamps.last() }
+            index += 1
+            return timestamp
+        }
     }
 }
