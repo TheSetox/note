@@ -16,6 +16,7 @@ classDiagram
     +id: String
     +title: String
     +content: String
+    +colorKey: String
     +isCompleted: Boolean
     +createdAt: Long
     +updatedAt: Long

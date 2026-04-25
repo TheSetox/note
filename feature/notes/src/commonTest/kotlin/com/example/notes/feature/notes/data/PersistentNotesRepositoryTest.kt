@@ -3,6 +3,7 @@ package com.example.notes.feature.notes.data
 import com.example.notes.core.common.coroutine.AppDispatchers
 import com.example.notes.core.database.entity.NoteEntity
 import com.example.notes.core.database.source.NotesLocalDataSource
+import com.example.notes.feature.notes.domain.NoteColorKeys
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -70,6 +71,29 @@ class PersistentNotesRepositoryTest {
 
             assertTrue(localDataSource.writeSnapshots.size >= 4)
             assertEquals(0, localDataSource.persisted.size)
+        }
+
+    @Test
+    fun addAndUpdate_persistSelectedColorKey() =
+        runTest(testDispatcher) {
+            val localDataSource = FakeNotesLocalDataSource()
+            val repository = PersistentNotesRepository(localDataSource = localDataSource, dispatchers = dispatchers)
+
+            val added =
+                repository
+                    .addNote(title = "Color", content = "Mint", colorKey = NoteColorKeys.MINT)
+                    .getOrThrow()
+            assertEquals(NoteColorKeys.MINT, localDataSource.persisted.single().colorKey)
+
+            repository
+                .updateNote(
+                    id = added.id,
+                    title = "Color",
+                    content = "Blush",
+                    colorKey = NoteColorKeys.BLUSH,
+                ).getOrThrow()
+
+            assertEquals(NoteColorKeys.BLUSH, localDataSource.persisted.single().colorKey)
         }
 
     private class FakeNotesLocalDataSource(

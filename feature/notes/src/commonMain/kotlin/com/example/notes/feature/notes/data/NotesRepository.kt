@@ -1,6 +1,7 @@
 package com.example.notes.feature.notes.data
 
 import com.example.notes.feature.notes.domain.Note
+import com.example.notes.feature.notes.domain.NoteColorKeys
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -18,6 +19,7 @@ interface NotesRepository {
     suspend fun addNote(
         title: String,
         content: String,
+        colorKey: String = NoteColorKeys.LAVENDER,
     ): Result<Note>
 
     /**
@@ -27,6 +29,7 @@ interface NotesRepository {
         id: String,
         title: String,
         content: String,
+        colorKey: String = NoteColorKeys.LAVENDER,
     ): Result<Note>
 
     /**

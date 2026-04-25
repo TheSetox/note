@@ -1,6 +1,7 @@
 package com.example.notes.feature.notes.data
 
 import com.example.notes.core.common.coroutine.AppDispatchers
+import com.example.notes.feature.notes.domain.NoteColorKeys
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -56,6 +57,37 @@ class InMemoryNotesRepositoryTest {
             val repository = InMemoryNotesRepository(dispatchers = dispatchers)
             val result = repository.deleteNote("missing-note")
             assertTrue(result.isFailure)
+        }
+
+    @Test
+    fun addAndUpdate_preserveSelectedColorKey() =
+        runTest(testDispatcher) {
+            val repository = InMemoryNotesRepository(dispatchers = dispatchers)
+
+            val added =
+                repository
+                    .addNote(title = "Color", content = "Mint", colorKey = NoteColorKeys.MINT)
+                    .getOrThrow()
+            assertEquals(NoteColorKeys.MINT, added.colorKey)
+
+            val updated =
+                repository
+                    .updateNote(
+                        id = added.id,
+                        title = "Color",
+                        content = "Blush",
+                        colorKey = NoteColorKeys.BLUSH,
+                    ).getOrThrow()
+
+            assertEquals(NoteColorKeys.BLUSH, updated.colorKey)
+            assertEquals(
+                NoteColorKeys.BLUSH,
+                repository
+                    .observeNotes()
+                    .first()
+                    .first()
+                    .colorKey,
+            )
         }
 
     private class TestAppDispatchers(

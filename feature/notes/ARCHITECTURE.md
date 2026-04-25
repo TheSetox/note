@@ -23,21 +23,46 @@ classDiagram
 
   class NotesListViewModel {
     +uiState: StateFlow~NotesListUiState~
+    +editorState: StateFlow~NoteEditorUiState~
     +uiEffects: SharedFlow~NotesListUiEffect~
     +addNote(title, content)
     +updateNote(id, title, content)
+    +startNewNote()
+    +startEditing(note)
+    +onEditorTitleChanged(title)
+    +onEditorContentChanged(content)
+    +onEditorColorSelected(colorKey)
+    +saveEditor()
     +setNoteCompleted(id, isCompleted)
     +requestDelete(noteId)
     +confirmDelete()
   }
 
+  class NoteEditorUiState {
+    +activeNoteId: String?
+    +title: String
+    +content: String
+    +selectedColorKey: String
+    +updatedAt: Long?
+    +hasUnsavedChanges: Boolean
+  }
+
   class NotesRepository {
     <<interface>>
     +observeNotes()
-    +addNote(title, content)
-    +updateNote(id, title, content)
+    +addNote(title, content, colorKey)
+    +updateNote(id, title, content, colorKey)
     +deleteNote(id)
     +setCompleted(id, isCompleted)
+  }
+
+  class NotesEditorScreen {
+    <<composable>>
+    +NotesEditorScreen(uiState, editorState, copy)
+  }
+
+  class NotesUiCopy {
+    +messageFor(messageKey) String
   }
 
   class PersistentNotesRepository
@@ -46,28 +71,21 @@ classDiagram
     <<interface>>
   }
 
-  class NotesSharedBridge {
-    +bootstrapMessage() String
-  }
-
   class NotesAppRoot {
     <<composable>>
     +NotesAppRoot()
     +NotesAppRootPreview()
   }
 
-  class AppBootstrapInfo {
-    <<object>>
-    +MODULE_ID: String
-  }
-
   NotesAppEntry --> NotesListViewModel
+  NotesAppRoot --> NotesEditorScreen
+  NotesAppRoot --> NotesListViewModel
+  NotesEditorScreen --> NoteEditorUiState
+  NotesEditorScreen --> NotesUiCopy
   NotesListViewModel --> NotesRepository
   NotesRepository <|.. PersistentNotesRepository
   NotesRepository <|.. InMemoryNotesRepository
   PersistentNotesRepository --> NotesLocalDataSource
-  NotesAppRoot --> NotesSharedBridge
-  NotesSharedBridge --> AppBootstrapInfo
 ```
 
 ## Sequence Diagram
@@ -80,14 +98,14 @@ sequenceDiagram
   participant Local as NotesLocalDataSource
   participant Flow as observeNotes Flow
 
-  UI->>VM: addNote(title, content)
-  VM->>Repo: addNote(title, content)
+  UI->>VM: saveEditor()
+  VM->>Repo: addNote(title, content, colorKey)
   Repo->>Local: writeAll(updatedNotes)
   Local-->>Repo: success
   Repo-->>VM: Result.Success(Note)
   Repo-->>Flow: emit updated list
   Flow-->>VM: notes list
-  VM-->>UI: updated uiState + SAVE_SUCCESS effect
+  VM-->>UI: updated uiState + editorState + SAVE_SUCCESS effect
 ```
 
 ## Preview Flow
@@ -97,12 +115,12 @@ sequenceDiagram
   participant IDE as IDE Preview
   participant Preview as NotesAppRootPreview()
   participant Root as NotesAppRoot()
-  participant Bridge as NotesSharedBridge
+  participant VM as NotesListViewModel
 
   IDE->>Preview: render
   Preview->>Root: invoke
-  Root->>Bridge: bootstrapMessage()
-  Bridge-->>Root: message
+  Root->>VM: observe uiState + editorState
+  VM-->>Root: editor screen state
   Root-->>IDE: rendered composable tree
 ```
 

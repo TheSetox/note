@@ -2,6 +2,7 @@ package com.example.notes.feature.notes.data
 
 import com.example.notes.core.database.entity.NoteEntity
 import com.example.notes.feature.notes.domain.Note
+import com.example.notes.feature.notes.domain.NoteColorKeys
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -13,6 +14,7 @@ class NoteMappersTest {
                 id = "n-1",
                 title = "Title",
                 content = "Content",
+                colorKey = NoteColorKeys.SKY,
                 isCompleted = true,
                 createdAt = 10L,
                 updatedAt = 20L,
@@ -23,6 +25,7 @@ class NoteMappersTest {
         assertEquals("n-1", domain.id)
         assertEquals("Title", domain.title)
         assertEquals("Content", domain.content)
+        assertEquals(NoteColorKeys.SKY, domain.colorKey)
         assertEquals(true, domain.isCompleted)
         assertEquals(10L, domain.createdAt)
         assertEquals(20L, domain.updatedAt)
@@ -35,6 +38,7 @@ class NoteMappersTest {
                 id = "n-2",
                 title = "Another",
                 content = "Body",
+                colorKey = NoteColorKeys.CREAM,
                 isCompleted = false,
                 createdAt = 100L,
                 updatedAt = 110L,
@@ -45,6 +49,7 @@ class NoteMappersTest {
         assertEquals("n-2", entity.id)
         assertEquals("Another", entity.title)
         assertEquals("Body", entity.content)
+        assertEquals(NoteColorKeys.CREAM, entity.colorKey)
         assertEquals(false, entity.isCompleted)
         assertEquals(100L, entity.createdAt)
         assertEquals(110L, entity.updatedAt)

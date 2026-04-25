@@ -1,14 +1,16 @@
 # feature:notes
 
 ## Purpose
-Notes feature domain/data/presentation logic for list management, CRUD, filtering, searching, and completion state handling.
+Notes feature domain/data/presentation logic for note editing, list management, CRUD, filtering, searching, completion state, and note color selection.
 
 ## Public Contracts
-- `Note` / `NoteFilter` domain models.
+- `Note`, `NoteColorKeys`, and `NoteFilter` domain models.
 - `NotesRepository` repository contract.
-- `NotesListViewModel`, `NotesListUiState`, and `NotesListUiEffect`.
+- `NotesListViewModel`, `NotesListUiState`, `NoteEditorUiState`, and `NotesListUiEffect`.
 - `notesProdModule`, `notesTestModule`, `notesFakeModule` for Koin wiring.
 - `NotesAppRoot()` shared Compose root.
+- `NotesEditorScreen()` shared Compose editor UI.
+- `NotesUiCopy` copy holder for user-facing editor/list strings.
 - `makeNotesViewController()` iOS `UIViewController` bridge for shared Compose UI.
 
 ## Dependencies
@@ -36,9 +38,12 @@ graph LR
 
 ## Usage Notes
 - UI should observe `uiState` and `uiEffects` from `NotesListViewModel`.
+- Editor UI should observe `editorState` from `NotesListViewModel` and save through `saveEditor()`.
+- New and updated notes carry a `colorKey` from `NoteColorKeys`; unsupported values fall back to lavender.
 - Delete must be user-confirmed by `requestDelete` then `confirmDelete`.
 - Filtering and search are stateful and retained in the view model state.
 - Production repository is file-backed through `NotesLocalDataSource`; tests/fakes can still use `InMemoryNotesRepository`.
+- `NotesAppRoot()` wires the file-backed repository and renders the shared editor screen for Android, iOS, and desktop.
 - `NotesAppRoot()` includes `NotesAppRootPreview()` for Compose preview in IDE.
 - Core contracts/classes (`NotesRepository`, repositories, `NotesListViewModel`, and `NotesAppRoot`) include KDoc.
 - Module-level format tasks are available: `:feature:notes:spotlessCheck` and `:feature:notes:spotlessApply`.
