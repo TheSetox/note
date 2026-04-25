@@ -3,6 +3,7 @@ package com.example.notes.feature.notes.presentation
 import com.example.notes.core.common.coroutine.AppDispatchers
 import com.example.notes.feature.notes.data.NotesRepository
 import com.example.notes.feature.notes.domain.Note
+import com.example.notes.feature.notes.domain.NoteColorKeys
 import com.example.notes.feature.notes.domain.NoteFilter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -23,10 +24,24 @@ import kotlinx.coroutines.launch
 data class NoteListItemUiModel(
     val id: String,
     val title: String,
+    val content: String,
     val contentPreview: String,
+    val colorKey: String,
     val isCompleted: Boolean,
     val createdAt: Long,
     val updatedAt: Long,
+)
+
+/**
+ * Persistent editor state for the currently open note draft.
+ */
+data class NoteEditorUiState(
+    val activeNoteId: String? = null,
+    val title: String = "",
+    val content: String = "",
+    val selectedColorKey: String = NoteColorKeys.LAVENDER,
+    val updatedAt: Long? = null,
+    val hasUnsavedChanges: Boolean = false,
 )
 
 /**
@@ -68,6 +83,7 @@ enum class NotesMessageKey {
  *
  * This class owns search/filter state so those values are preserved when the UI returns to the list.
  */
+@Suppress("TooManyFunctions")
 class NotesListViewModel(
     private val repository: NotesRepository,
     private val dispatchers: AppDispatchers,
@@ -79,9 +95,11 @@ class NotesListViewModel(
     private val searchQuery = MutableStateFlow("")
     private val selectedFilter = MutableStateFlow(NoteFilter.ALL)
     private val pendingDeleteNoteId = MutableStateFlow<String?>(null)
+    private val _editorState = MutableStateFlow(NoteEditorUiState())
 
     private val _uiEffects = MutableSharedFlow<NotesListUiEffect>(extraBufferCapacity = 1)
     val uiEffects: SharedFlow<NotesListUiEffect> = _uiEffects.asSharedFlow()
+    val editorState: StateFlow<NoteEditorUiState> = _editorState
 
     val uiState: StateFlow<NotesListUiState> =
         combine(
@@ -114,6 +132,108 @@ class NotesListViewModel(
      */
     fun onFilterChanged(filter: NoteFilter) {
         selectedFilter.value = filter
+    }
+
+    /**
+     * Opens an empty editor draft.
+     */
+    fun startNewNote() {
+        _editorState.value = NoteEditorUiState()
+    }
+
+    /**
+     * Opens an existing note in the editor.
+     */
+    fun startEditing(note: NoteListItemUiModel) {
+        _editorState.value =
+            NoteEditorUiState(
+                activeNoteId = note.id,
+                title = note.title,
+                content = note.content,
+                selectedColorKey = note.colorKey,
+                updatedAt = note.updatedAt,
+                hasUnsavedChanges = false,
+            )
+    }
+
+    /**
+     * Updates the editor title draft.
+     */
+    fun onEditorTitleChanged(title: String) {
+        _editorState.value = _editorState.value.copy(title = title, hasUnsavedChanges = true)
+    }
+
+    /**
+     * Updates the editor body draft.
+     */
+    fun onEditorContentChanged(content: String) {
+        _editorState.value = _editorState.value.copy(content = content, hasUnsavedChanges = true)
+    }
+
+    /**
+     * Updates the selected editor color.
+     */
+    fun onEditorColorSelected(colorKey: String) {
+        val normalizedColorKey =
+            colorKey.takeIf { candidate -> candidate in NoteColorKeys.all }
+                ?: NoteColorKeys.LAVENDER
+        _editorState.value =
+            _editorState.value.copy(
+                selectedColorKey = normalizedColorKey,
+                hasUnsavedChanges = true,
+            )
+    }
+
+    /**
+     * Saves the currently open editor draft as a new or existing note.
+     */
+    fun saveEditor() {
+        val editor = _editorState.value
+        val sanitizedTitle = editor.title.trim()
+        if (sanitizedTitle.isEmpty()) {
+            emitMessage(NotesMessageKey.TITLE_REQUIRED)
+            return
+        }
+
+        scope.launch(dispatchers.io) {
+            val noteId = editor.activeNoteId
+            val result =
+                if (noteId == null) {
+                    repository.addNote(
+                        title = sanitizedTitle,
+                        content = editor.content.trim(),
+                        colorKey = editor.selectedColorKey,
+                    )
+                } else {
+                    repository.updateNote(
+                        id = noteId,
+                        title = sanitizedTitle,
+                        content = editor.content.trim(),
+                        colorKey = editor.selectedColorKey,
+                    )
+                }
+
+            result.onSuccess { savedNote ->
+                _editorState.value =
+                    NoteEditorUiState(
+                        activeNoteId = savedNote.id,
+                        title = savedNote.title,
+                        content = savedNote.content,
+                        selectedColorKey = savedNote.colorKey,
+                        updatedAt = savedNote.updatedAt,
+                        hasUnsavedChanges = false,
+                    )
+            }
+
+            emitMessage(
+                when {
+                    result.isSuccess && noteId == null -> NotesMessageKey.SAVE_SUCCESS
+                    result.isSuccess -> NotesMessageKey.UPDATE_SUCCESS
+                    noteId == null -> NotesMessageKey.SAVE_FAILURE
+                    else -> NotesMessageKey.UPDATE_FAILURE
+                },
+            )
+        }
     }
 
     /**
@@ -258,7 +378,9 @@ private fun List<Note>.toVisibleNotes(
             NoteListItemUiModel(
                 id = note.id,
                 title = note.title,
+                content = note.content,
                 contentPreview = note.content.take(CONTENT_PREVIEW_LENGTH),
+                colorKey = note.colorKey,
                 isCompleted = note.isCompleted,
                 createdAt = note.createdAt,
                 updatedAt = note.updatedAt,

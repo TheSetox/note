@@ -3,6 +3,7 @@ package com.example.notes.feature.notes.data
 import com.example.notes.core.common.coroutine.AppDispatchers
 import com.example.notes.core.database.source.NotesLocalDataSource
 import com.example.notes.feature.notes.domain.Note
+import com.example.notes.feature.notes.domain.NoteColorKeys
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,6 +35,7 @@ class PersistentNotesRepository(
     override suspend fun addNote(
         title: String,
         content: String,
+        colorKey: String,
     ): Result<Note> =
         withContext(dispatchers.io) {
             runCatching {
@@ -45,6 +47,7 @@ class PersistentNotesRepository(
                             id = nextId(timestamp),
                             title = title,
                             content = content,
+                            colorKey = colorKey.normalizedColorKey(),
                             isCompleted = false,
                             createdAt = timestamp,
                             updatedAt = timestamp,
@@ -59,6 +62,7 @@ class PersistentNotesRepository(
         id: String,
         title: String,
         content: String,
+        colorKey: String,
     ): Result<Note> =
         withContext(dispatchers.io) {
             runCatching {
@@ -69,6 +73,7 @@ class PersistentNotesRepository(
                         existing.copy(
                             title = title,
                             content = content,
+                            colorKey = colorKey.normalizedColorKey(),
                             updatedAt = nextTimestamp(),
                         )
 
@@ -167,4 +172,9 @@ class PersistentNotesRepository(
         clock += 1
         return clock
     }
+}
+
+private fun String.normalizedColorKey(): String {
+    val isSupportedColor = this in NoteColorKeys.all
+    return takeIf { isSupportedColor } ?: NoteColorKeys.LAVENDER
 }

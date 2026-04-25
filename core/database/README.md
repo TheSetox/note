@@ -4,7 +4,7 @@
 Provides local persistence primitives for notes data using a file-backed JSON data source in shared code.
 
 ## Public Contracts
-- `NoteEntity`: persistence model.
+- `NoteEntity`: persistence model, including the saved note `colorKey`.
 - `NotesLocalDataSource`: local read/write abstraction.
 - `JsonFileNotesLocalDataSource`: default JSON file implementation.
 
@@ -24,6 +24,7 @@ graph LR
 
 ## Usage Notes
 - Data is stored in `notes-data/notes.json` by default.
+- Missing `colorKey` values from older JSON snapshots decode to the default lavender color.
 - Writes are full snapshot rewrites of the current notes list.
 - `NotesLocalDataSource` and `JsonFileNotesLocalDataSource` include KDoc for persistence contract clarity.
 - Module-level format tasks are available: `:core:database:spotlessCheck` and `:core:database:spotlessApply`.
