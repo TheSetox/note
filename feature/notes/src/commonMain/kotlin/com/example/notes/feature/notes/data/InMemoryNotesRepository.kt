@@ -17,6 +17,7 @@ import kotlin.math.max
 class InMemoryNotesRepository(
     private val dispatchers: AppDispatchers,
     initialNotes: List<Note> = emptyList(),
+    private val timestampProvider: NoteTimestampProvider = SystemNoteTimestampProvider,
 ) : NotesRepository {
     private val writeLock = Mutex()
     private val notes = MutableStateFlow(initialNotes.sortedByDescending { it.updatedAt })
@@ -124,7 +125,7 @@ class InMemoryNotesRepository(
     }
 
     private fun nextTimestamp(): Long {
-        clock += 1
+        clock = max(timestampProvider.nowMillis(), clock + 1)
         return clock
     }
 }

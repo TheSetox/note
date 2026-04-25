@@ -96,6 +96,75 @@ class PersistentNotesRepositoryTest {
             assertEquals(NoteColorKeys.BLUSH, localDataSource.persisted.single().colorKey)
         }
 
+    @Test
+    fun persistedCounterTimestamps_loadAndNextWriteUsesInjectedCurrentTime() =
+        runTest(testDispatcher) {
+            val localDataSource =
+                FakeNotesLocalDataSource(
+                    initialNotes =
+                        listOf(
+                            NoteEntity(
+                                id = "note-legacy",
+                                title = "Legacy",
+                                content = "Counter timestamp",
+                                isCompleted = false,
+                                createdAt = 1L,
+                                updatedAt = 2L,
+                            ),
+                        ),
+                )
+            val repository =
+                PersistentNotesRepository(
+                    localDataSource = localDataSource,
+                    dispatchers = dispatchers,
+                    timestampProvider = SequenceTimestampProvider(1_777_071_491_000L),
+                )
+
+            assertEquals(
+                2L,
+                repository
+                    .observeNotes()
+                    .first()
+                    .single()
+                    .updatedAt,
+            )
+
+            val added = repository.addNote(title = "Current", content = "Epoch timestamp").getOrThrow()
+
+            assertEquals(1_777_071_491_000L, added.createdAt)
+            assertEquals(1_777_071_491_000L, added.updatedAt)
+            assertEquals(listOf("Current", "Legacy"), localDataSource.persisted.map { note -> note.title })
+        }
+
+    @Test
+    fun updateAndComplete_useInjectedTimestampProvider() =
+        runTest(testDispatcher) {
+            val localDataSource = FakeNotesLocalDataSource()
+            val repository =
+                PersistentNotesRepository(
+                    localDataSource = localDataSource,
+                    dispatchers = dispatchers,
+                    timestampProvider =
+                        SequenceTimestampProvider(
+                            1_777_071_491_000L,
+                            1_777_071_492_000L,
+                            1_777_071_493_000L,
+                        ),
+                )
+
+            val added = repository.addNote(title = "Timed", content = "Draft").getOrThrow()
+            val updated =
+                repository
+                    .updateNote(id = added.id, title = "Timed updated", content = "Saved")
+                    .getOrThrow()
+            val completed = repository.setCompleted(id = added.id, isCompleted = true).getOrThrow()
+
+            assertEquals(1_777_071_491_000L, added.createdAt)
+            assertEquals(1_777_071_492_000L, updated.updatedAt)
+            assertEquals(1_777_071_493_000L, completed.updatedAt)
+            assertEquals(1_777_071_493_000L, localDataSource.persisted.single().updatedAt)
+        }
+
     private class FakeNotesLocalDataSource(
         initialNotes: List<NoteEntity> = emptyList(),
     ) : NotesLocalDataSource {
@@ -116,5 +185,17 @@ class PersistentNotesRepositoryTest {
         override val io = testDispatcher
         override val default = testDispatcher
         override val main = testDispatcher
+    }
+
+    private class SequenceTimestampProvider(
+        private vararg val timestamps: Long,
+    ) : NoteTimestampProvider {
+        private var index = 0
+
+        override fun nowMillis(): Long {
+            val timestamp = timestamps.getOrElse(index) { timestamps.last() }
+            index += 1
+            return timestamp
+        }
     }
 }
