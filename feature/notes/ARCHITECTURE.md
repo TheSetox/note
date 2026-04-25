@@ -79,9 +79,18 @@ classDiagram
     +NotesAppRootPreview()
   }
 
+  class notesProdModule {
+    <<Koin module>>
+    +NotesListViewModel
+    +NotesRepository
+    +NotesLocalDataSource
+  }
+
   NotesAppEntry --> NotesListViewModel
   NotesAppRoot --> NotesEditorScreen
-  NotesAppRoot --> NotesListViewModel
+  NotesAppRoot --> notesProdModule
+  notesProdModule --> NotesListViewModel
+  notesProdModule --> NotesRepository
   NotesEditorScreen --> NoteEditorUiState
   NotesEditorScreen --> NotesUiCopy
   NotesListViewModel --> NotesRepository

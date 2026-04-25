@@ -15,11 +15,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.notes.core.common.coroutine.DefaultAppDispatchers
-import com.example.notes.core.database.source.JsonFileNotesLocalDataSource
-import com.example.notes.feature.notes.data.PersistentNotesRepository
+import com.example.notes.feature.notes.di.notesProdModule
 import com.example.notes.feature.notes.presentation.NotesListUiEffect
 import com.example.notes.feature.notes.presentation.NotesListViewModel
+import org.koin.dsl.koinApplication
 
 /**
  * Root Compose screen for the notes feature used by Android, iOS, and Desktop entry points.
@@ -75,19 +74,22 @@ fun NotesAppRoot(
 
 @Composable
 private fun NotesListViewModelProvider(): NotesListViewModel {
-    val viewModel =
+    val koinApplication =
         remember {
-            val dispatchers = DefaultAppDispatchers()
-            val localDataSource = JsonFileNotesLocalDataSource(dispatchers = dispatchers)
-            val repository = PersistentNotesRepository(localDataSource = localDataSource, dispatchers = dispatchers)
-            NotesAppEntry.createNotesListViewModel(
-                repository = repository,
-                dispatchers = dispatchers,
-            )
+            koinApplication {
+                modules(notesProdModule)
+            }
+        }
+    val viewModel =
+        remember(koinApplication) {
+            koinApplication.koin.get<NotesListViewModel>()
         }
 
-    DisposableEffect(viewModel) {
-        onDispose { viewModel.clear() }
+    DisposableEffect(koinApplication, viewModel) {
+        onDispose {
+            viewModel.clear()
+            koinApplication.close()
+        }
     }
 
     return viewModel

@@ -4,12 +4,11 @@ import com.example.notes.core.common.coroutine.AppDispatchers
 import com.example.notes.core.common.coroutine.DefaultAppDispatchers
 import com.example.notes.core.database.source.JsonFileNotesLocalDataSource
 import com.example.notes.core.database.source.NotesLocalDataSource
+import com.example.notes.feature.notes.app.NotesAppEntry
 import com.example.notes.feature.notes.data.InMemoryNotesRepository
 import com.example.notes.feature.notes.data.NotesRepository
 import com.example.notes.feature.notes.data.PersistentNotesRepository
 import com.example.notes.feature.notes.domain.Note
-import com.example.notes.feature.notes.presentation.NotesListViewModel
-import kotlinx.coroutines.CoroutineScope
 import org.koin.dsl.module
 
 val notesProdModule =
@@ -22,11 +21,10 @@ val notesProdModule =
                 dispatchers = get(),
             )
         }
-        factory { (scope: CoroutineScope?) ->
-            NotesListViewModel(
+        factory {
+            NotesAppEntry.createNotesListViewModel(
                 repository = get(),
                 dispatchers = get(),
-                externalScope = scope,
             )
         }
     }
