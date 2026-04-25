@@ -44,7 +44,7 @@ graph LR
 - Delete must be user-confirmed by `requestDelete` then `confirmDelete`.
 - Filtering and search are stateful and retained in the view model state.
 - Production repository is file-backed through `NotesLocalDataSource`; tests/fakes can still use `InMemoryNotesRepository`.
-- `NotesAppRoot()` wires the file-backed repository and renders the shared editor screen for Android, iOS, and desktop.
+- `NotesAppRoot()` resolves production wiring through `notesProdModule` and renders the shared editor screen for Android, iOS, and desktop.
 - `NotesAppRoot()` includes `NotesAppRootPreview()` for Compose preview in IDE.
 - Core contracts/classes (`NotesRepository`, repositories, `NotesListViewModel`, and `NotesAppRoot`) include KDoc.
 - Module-level format tasks are available: `:feature:notes:spotlessCheck` and `:feature:notes:spotlessApply`.
