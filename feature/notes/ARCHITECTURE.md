@@ -10,6 +10,7 @@ graph LR
 
   featureNotes --> coreCommon["core:common"]
   featureNotes --> coreDatabase["core:database"]
+  featureNotes --> coreDesignSystem["core:designsystem"]
   featureNotes --> coreUi["core:ui"]
 ```
 
@@ -68,6 +69,20 @@ classDiagram
     +NotesEditorScreen(uiState, editorState, copy, actions)
   }
 
+  class NotesDesignSystem {
+    <<composable>>
+    +NotesDesignSystem(content)
+  }
+
+  class NotesTheme {
+    <<object>>
+    +colors
+    +typography
+    +spacing
+    +shapes
+    +motion
+  }
+
   class NotesUiCopy {
     +messageFor(messageKey) String
   }
@@ -93,6 +108,8 @@ classDiagram
 
   NotesAppEntry --> NotesListViewModel
   NotesAppRoot --> NotesEditorScreen
+  NotesAppRoot --> NotesDesignSystem
+  NotesEditorScreen --> NotesTheme
   NotesAppRoot --> notesProdModule
   notesProdModule --> NotesListViewModel
   notesProdModule --> NotesRepository

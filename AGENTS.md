@@ -21,7 +21,7 @@ When local Note policy conflicts with the inherited workspace harness, this file
 
 - Project: `notes-kmp`
 - Product scope: Android, iOS, and desktop clients
-- Modules: `androidApp`, `iosApp`, `desktopApp`, `core:common`, `core:database`, `core:ui`, `feature:notes`, and `tools:detekt-rules`
+- Modules: `androidApp`, `iosApp`, `desktopApp`, `core:common`, `core:database`, `core:designsystem`, `core:ui`, `feature:notes`, and `tools:detekt-rules`
 - Architecture: MVVM
 - UI pattern: MVVM
 - Dependency injection: Koin
@@ -38,7 +38,7 @@ These are the Note-local rules that should stay stable:
 3. Respect each module's `README.md` and `ARCHITECTURE.md` before changing boundaries, ownership, dependencies, or public contracts.
 4. Keep layer direction intact: Compose UI -> ViewModel -> Repository -> DataSource.
 5. Keep notes product behavior in `feature:notes` unless it is app-shell wiring or platform-specific integration.
-6. Keep shared domain and reusable UI behavior in `core:*` modules unless a narrower feature module clearly owns it.
+6. Keep visual tokens in `core:designsystem`; keep shared domain and reusable UI behavior in `core:*` modules unless a narrower feature module clearly owns it.
 7. Keep custom static analysis rules in `tools:detekt-rules`.
 8. Keep Note-specific policy in this file and reusable workspace knowledge under `../.skills/`.
 
@@ -125,6 +125,7 @@ Do not turn `AGENTS.md` back into the encyclopedia.
 - `iosApp/README.md` and `iosApp/ARCHITECTURE.md`
 - `core/common/README.md` and `core/common/ARCHITECTURE.md`
 - `core/database/README.md` and `core/database/ARCHITECTURE.md`
+- `core/designsystem/README.md` and `core/designsystem/ARCHITECTURE.md`
 - `core/ui/README.md` and `core/ui/ARCHITECTURE.md`
 - `feature/notes/README.md` and `feature/notes/ARCHITECTURE.md`
 - `tools/detekt-rules/README.md` and `tools/detekt-rules/ARCHITECTURE.md`
