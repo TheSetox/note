@@ -1,4 +1,4 @@
-@file:Suppress("MagicNumber")
+@file:Suppress("MagicNumber", "TooManyFunctions")
 
 package com.example.notes.feature.notes.app
 
@@ -24,11 +24,19 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,10 +46,12 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.notes.feature.notes.domain.NoteColorKeys
+import com.example.notes.feature.notes.domain.NoteFilter
 import com.example.notes.feature.notes.presentation.NoteEditorUiState
 import com.example.notes.feature.notes.presentation.NoteListItemUiModel
 import com.example.notes.feature.notes.presentation.NotesListUiState
@@ -54,11 +64,16 @@ fun NotesEditorScreen(
     lastMessage: String?,
     copy: NotesUiCopy,
     onBackClick: () -> Unit,
-    onMoreClick: () -> Unit,
     onSaveClick: () -> Unit,
     onTitleChange: (String) -> Unit,
     onContentChange: (String) -> Unit,
     onColorSelected: (String) -> Unit,
+    onSearchQueryChange: (String) -> Unit,
+    onFilterSelected: (NoteFilter) -> Unit,
+    onEditorCompletedChange: (Boolean) -> Unit,
+    onRequestDelete: (String) -> Unit,
+    onDismissDelete: () -> Unit,
+    onConfirmDelete: () -> Unit,
     onNoteSelected: (NoteListItemUiModel) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -74,10 +89,13 @@ fun NotesEditorScreen(
             item {
                 NotesEditorTopBar(
                     copy = copy,
+                    activeNoteId = editorState.activeNoteId,
+                    isCompleted = editorState.isCompleted,
                     canSave = editorState.title.isNotBlank() && editorState.hasUnsavedChanges,
                     onBackClick = onBackClick,
-                    onMoreClick = onMoreClick,
                     onSaveClick = onSaveClick,
+                    onEditorCompletedChange = onEditorCompletedChange,
+                    onRequestDelete = onRequestDelete,
                 )
                 Spacer(modifier = Modifier.height(18.dp))
                 ColorSwatchRow(
@@ -114,6 +132,19 @@ fun NotesEditorScreen(
                     )
                 }
                 Spacer(modifier = Modifier.height(30.dp))
+                SearchField(
+                    value = uiState.searchQuery,
+                    copy = copy,
+                    palette = palette,
+                    onValueChange = onSearchQueryChange,
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                FilterRow(
+                    selectedFilter = uiState.filter,
+                    copy = copy,
+                    onFilterSelected = onFilterSelected,
+                )
+                Spacer(modifier = Modifier.height(20.dp))
                 Text(
                     text = copy.recentNotesTitle,
                     style = MaterialTheme.typography.titleMedium,
@@ -138,6 +169,7 @@ fun NotesEditorScreen(
                     RecentNoteCard(
                         note = note,
                         copy = copy,
+                        isSelected = note.id == editorState.activeNoteId,
                         onClick = { onNoteSelected(note) },
                     )
                     Spacer(modifier = Modifier.height(10.dp))
@@ -145,16 +177,30 @@ fun NotesEditorScreen(
             }
         }
     }
+
+    if (uiState.pendingDeleteNoteId != null) {
+        DeleteNoteDialog(
+            copy = copy,
+            onDismissDelete = onDismissDelete,
+            onConfirmDelete = onConfirmDelete,
+        )
+    }
 }
 
 @Composable
+@Suppress("LongMethod", "LongParameterList")
 private fun NotesEditorTopBar(
     copy: NotesUiCopy,
+    activeNoteId: String?,
+    isCompleted: Boolean,
     canSave: Boolean,
     onBackClick: () -> Unit,
-    onMoreClick: () -> Unit,
     onSaveClick: () -> Unit,
+    onEditorCompletedChange: (Boolean) -> Unit,
+    onRequestDelete: (String) -> Unit,
 ) {
+    var isMenuExpanded by remember { mutableStateOf(false) }
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -171,11 +217,135 @@ private fun NotesEditorTopBar(
                 Text(text = copy.saveAction)
             }
             Spacer(modifier = Modifier.width(4.dp))
-            TextButton(onClick = onMoreClick) {
-                Text(text = copy.moreAction)
+            Box {
+                TextButton(onClick = { isMenuExpanded = true }) {
+                    Text(text = copy.moreAction)
+                }
+                DropdownMenu(
+                    expanded = isMenuExpanded,
+                    onDismissRequest = { isMenuExpanded = false },
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(text = copy.newNoteAction) },
+                        onClick = {
+                            isMenuExpanded = false
+                            onBackClick()
+                        },
+                    )
+                    if (activeNoteId != null) {
+                        DropdownMenuItem(
+                            text =
+                                {
+                                    Text(
+                                        text =
+                                            if (isCompleted) {
+                                                copy.markActiveAction
+                                            } else {
+                                                copy.markCompleteAction
+                                            },
+                                    )
+                                },
+                            onClick = {
+                                isMenuExpanded = false
+                                onEditorCompletedChange(!isCompleted)
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = { Text(text = copy.deleteNoteAction) },
+                            onClick = {
+                                isMenuExpanded = false
+                                onRequestDelete(activeNoteId)
+                            },
+                        )
+                    }
+                }
             }
         }
     }
+}
+
+@Composable
+private fun SearchField(
+    value: String,
+    copy: NotesUiCopy,
+    palette: NoteEditorPalette,
+    onValueChange: (String) -> Unit,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = palette.card,
+        shape = RoundedCornerShape(8.dp),
+    ) {
+        BasicTextField(
+            value = value,
+            onValueChange = onValueChange,
+            singleLine = true,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
+            textStyle =
+                MaterialTheme.typography.bodyMedium.copy(
+                    color = palette.content,
+                ),
+            cursorBrush = SolidColor(palette.content),
+            decorationBox = { innerTextField ->
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    if (value.isEmpty()) {
+                        Text(
+                            text = copy.searchPlaceholder,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = palette.content.copy(alpha = 0.46f),
+                        )
+                    }
+                    innerTextField()
+                }
+            },
+        )
+    }
+}
+
+@Composable
+private fun FilterRow(
+    selectedFilter: NoteFilter,
+    copy: NotesUiCopy,
+    onFilterSelected: (NoteFilter) -> Unit,
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        NoteFilter.entries.forEach { filter ->
+            FilterChip(
+                selected = selectedFilter == filter,
+                onClick = { onFilterSelected(filter) },
+                label = { Text(text = filter.label(copy)) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun DeleteNoteDialog(
+    copy: NotesUiCopy,
+    onDismissDelete: () -> Unit,
+    onConfirmDelete: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismissDelete,
+        title = { Text(text = copy.deleteDialogTitle) },
+        text = { Text(text = copy.deleteDialogMessage) },
+        confirmButton = {
+            TextButton(onClick = onConfirmDelete) {
+                Text(text = copy.confirmDeleteAction)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismissDelete) {
+                Text(text = copy.cancelAction)
+            }
+        },
+    )
 }
 
 @Composable
@@ -294,18 +464,38 @@ private fun EditorTextField(
 }
 
 @Composable
+@Suppress("LongMethod")
 private fun RecentNoteCard(
     note: NoteListItemUiModel,
     copy: NotesUiCopy,
+    isSelected: Boolean,
     onClick: () -> Unit,
 ) {
     val palette = noteEditorPaletteFor(note.colorKey)
+    val titleDecoration =
+        if (note.isCompleted) {
+            TextDecoration.LineThrough
+        } else {
+            TextDecoration.None
+        }
     Surface(
         modifier =
             Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(8.dp))
-                .clickable(onClick = onClick),
+                .border(
+                    border =
+                        BorderStroke(
+                            width = if (isSelected) 2.dp else 1.dp,
+                            color =
+                                if (isSelected) {
+                                    palette.content.copy(alpha = 0.3f)
+                                } else {
+                                    Color.White.copy(alpha = 0.48f)
+                                },
+                        ),
+                    shape = RoundedCornerShape(8.dp),
+                ).clickable(onClick = onClick),
         color = palette.card,
         shape = RoundedCornerShape(8.dp),
     ) {
@@ -315,6 +505,7 @@ private fun RecentNoteCard(
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
                 color = palette.content,
+                textDecoration = titleDecoration,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -323,12 +514,31 @@ private fun RecentNoteCard(
                 text = note.contentPreview.ifBlank { note.updatedAt.toEditedLabel(copy) },
                 style = MaterialTheme.typography.bodySmall,
                 color = palette.content.copy(alpha = 0.68f),
+                textDecoration = titleDecoration,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text =
+                    if (note.isCompleted) {
+                        copy.completedStatusLabel
+                    } else {
+                        copy.activeStatusLabel
+                    },
+                style = MaterialTheme.typography.labelSmall,
+                color = palette.content.copy(alpha = 0.54f),
             )
         }
     }
 }
+
+private fun NoteFilter.label(copy: NotesUiCopy): String =
+    when (this) {
+        NoteFilter.ALL -> copy.allFilterLabel
+        NoteFilter.ACTIVE -> copy.activeFilterLabel
+        NoteFilter.COMPLETED -> copy.completedFilterLabel
+    }
 
 private fun Long?.toEditedLabel(copy: NotesUiCopy): String =
     if (this == null) {
@@ -409,11 +619,16 @@ private fun NotesEditorScreenPreview() {
             lastMessage = null,
             copy = NotesUiCopy.English,
             onBackClick = {},
-            onMoreClick = {},
             onSaveClick = {},
             onTitleChange = {},
             onContentChange = {},
             onColorSelected = {},
+            onSearchQueryChange = {},
+            onFilterSelected = {},
+            onEditorCompletedChange = {},
+            onRequestDelete = {},
+            onDismissDelete = {},
+            onConfirmDelete = {},
             onNoteSelected = {},
         )
     }

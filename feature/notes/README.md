@@ -39,6 +39,7 @@ graph LR
 ## Usage Notes
 - UI should observe `uiState` and `uiEffects` from `NotesListViewModel`.
 - Editor UI should observe `editorState` from `NotesListViewModel` and save through `saveEditor()`.
+- Editor actions expose search, completion filters, active-note completion, and confirmed deletion through `NotesListViewModel`.
 - New and updated notes carry a `colorKey` from `NoteColorKeys`; unsupported values fall back to lavender.
 - Delete must be user-confirmed by `requestDelete` then `confirmDelete`.
 - Filtering and search are stateful and retained in the view model state.

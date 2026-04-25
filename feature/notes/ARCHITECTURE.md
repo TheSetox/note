@@ -33,6 +33,7 @@ classDiagram
     +onEditorContentChanged(content)
     +onEditorColorSelected(colorKey)
     +saveEditor()
+    +setEditorNoteCompleted(isCompleted)
     +setNoteCompleted(id, isCompleted)
     +requestDelete(noteId)
     +confirmDelete()
@@ -43,6 +44,7 @@ classDiagram
     +title: String
     +content: String
     +selectedColorKey: String
+    +isCompleted: Boolean
     +updatedAt: Long?
     +hasUnsavedChanges: Boolean
   }
@@ -58,7 +60,7 @@ classDiagram
 
   class NotesEditorScreen {
     <<composable>>
-    +NotesEditorScreen(uiState, editorState, copy)
+    +NotesEditorScreen(uiState, editorState, copy, actions)
   }
 
   class NotesUiCopy {
