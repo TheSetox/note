@@ -13,8 +13,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.notes.core.designsystem.NotesDesignSystem
+import com.example.notes.core.designsystem.NotesTheme
 import com.example.notes.feature.notes.di.notesProdModule
 import com.example.notes.feature.notes.presentation.NotesListUiEffect
 import com.example.notes.feature.notes.presentation.NotesListViewModel
@@ -41,34 +42,37 @@ fun NotesAppRoot(
         }
     }
 
-    MaterialTheme(
-        colorScheme =
-            lightColorScheme(
-                primary = Color(0xFF705C7C),
-                secondary = Color(0xFF5B6F65),
-                background = Color(0xFFF1E5F7),
-                surface = Color(0xFFF9F2FC),
-            ),
-    ) {
-        NotesEditorScreen(
-            uiState = uiState,
-            editorState = editorState,
-            lastMessage = lastMessage,
-            copy = copy,
-            onBackClick = viewModel::startNewNote,
-            onSaveClick = viewModel::saveEditor,
-            onTitleChange = viewModel::onEditorTitleChanged,
-            onContentChange = viewModel::onEditorContentChanged,
-            onColorSelected = viewModel::onEditorColorSelected,
-            onSearchQueryChange = viewModel::onSearchQueryChanged,
-            onFilterSelected = viewModel::onFilterChanged,
-            onEditorCompletedChange = viewModel::setEditorNoteCompleted,
-            onRequestDelete = viewModel::requestDelete,
-            onDismissDelete = viewModel::dismissDeleteConfirmation,
-            onConfirmDelete = viewModel::confirmDelete,
-            onNoteSelected = viewModel::startEditing,
-            modifier = modifier,
-        )
+    NotesDesignSystem {
+        val colors = NotesTheme.colors
+        MaterialTheme(
+            colorScheme =
+                lightColorScheme(
+                    primary = colors.primary,
+                    secondary = colors.secondary,
+                    background = colors.appBackground,
+                    surface = colors.surface,
+                ),
+        ) {
+            NotesEditorScreen(
+                uiState = uiState,
+                editorState = editorState,
+                lastMessage = lastMessage,
+                copy = copy,
+                onBackClick = viewModel::startNewNote,
+                onSaveClick = viewModel::saveEditor,
+                onTitleChange = viewModel::onEditorTitleChanged,
+                onContentChange = viewModel::onEditorContentChanged,
+                onColorSelected = viewModel::onEditorColorSelected,
+                onSearchQueryChange = viewModel::onSearchQueryChanged,
+                onFilterSelected = viewModel::onFilterChanged,
+                onEditorCompletedChange = viewModel::setEditorNoteCompleted,
+                onRequestDelete = viewModel::requestDelete,
+                onDismissDelete = viewModel::dismissDeleteConfirmation,
+                onConfirmDelete = viewModel::confirmDelete,
+                onNoteSelected = viewModel::startEditing,
+                modifier = modifier,
+            )
+        }
     }
 }
 

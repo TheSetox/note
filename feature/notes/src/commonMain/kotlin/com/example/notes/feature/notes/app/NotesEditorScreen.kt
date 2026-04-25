@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
@@ -51,12 +50,13 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import com.example.notes.feature.notes.domain.NoteColorKeys
+import com.example.notes.core.designsystem.NotesColors
+import com.example.notes.core.designsystem.NotesDesignSystem
+import com.example.notes.core.designsystem.NotesNotePalette
+import com.example.notes.core.designsystem.NotesTheme
 import com.example.notes.feature.notes.domain.NoteFilter
 import com.example.notes.feature.notes.presentation.NoteEditorUiState
 import com.example.notes.feature.notes.presentation.NoteListItemUiModel
@@ -83,14 +83,21 @@ fun NotesEditorScreen(
     onNoteSelected: (NoteListItemUiModel) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val palette = noteEditorPaletteFor(editorState.selectedColorKey)
+    val colors = NotesTheme.colors
+    val spacing = NotesTheme.spacing
+    val typography = NotesTheme.typography
+    val palette = colors.notePaletteFor(editorState.selectedColorKey)
     Surface(
         modifier = modifier.fillMaxSize(),
         color = palette.background,
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp),
+            contentPadding =
+                PaddingValues(
+                    horizontal = spacing.screenHorizontal,
+                    vertical = spacing.screenVertical,
+                ),
         ) {
             item {
                 NotesEditorTopBar(
@@ -103,67 +110,66 @@ fun NotesEditorScreen(
                     onEditorCompletedChange = onEditorCompletedChange,
                     onRequestDelete = onRequestDelete,
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(spacing.md))
                 ColorSwatchRow(
                     selectedColorKey = editorState.selectedColorKey,
                     copy = copy,
                     onColorSelected = onColorSelected,
                 )
-                Spacer(modifier = Modifier.height(26.dp))
+                Spacer(modifier = Modifier.height(spacing.lg + spacing.xxs))
                 EditorTitleField(
                     value = editorState.title,
                     placeholder = copy.titlePlaceholder,
                     textColor = palette.content,
                     onValueChange = onTitleChange,
                 )
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(spacing.lg))
                 EditorBodyField(
                     value = editorState.content,
                     placeholder = copy.bodyPlaceholder,
                     textColor = palette.content,
                     onValueChange = onContentChange,
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(spacing.md))
                 Text(
                     text = editorState.updatedAt.toEditedLabel(copy),
-                    style = MaterialTheme.typography.labelSmall,
+                    style = typography.label,
                     color = palette.content.copy(alpha = 0.56f),
                 )
                 if (lastMessage != null) {
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(spacing.sm))
                     Text(
                         text = lastMessage,
-                        style = MaterialTheme.typography.labelMedium,
+                        style = typography.label,
                         color = palette.content.copy(alpha = 0.72f),
                     )
                 }
-                Spacer(modifier = Modifier.height(30.dp))
+                Spacer(modifier = Modifier.height(spacing.xl))
                 SearchField(
                     value = uiState.searchQuery,
                     copy = copy,
                     palette = palette,
                     onValueChange = onSearchQueryChange,
                 )
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(spacing.sm))
                 FilterRow(
                     selectedFilter = uiState.filter,
                     copy = copy,
                     onFilterSelected = onFilterSelected,
                 )
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(spacing.md + spacing.xxs))
                 Text(
                     text = copy.recentNotesTitle,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
+                    style = typography.sectionTitle,
                     color = palette.content,
                 )
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(spacing.sm))
             }
             if (uiState.notes.isEmpty()) {
                 item {
                     Text(
                         text = copy.emptyRecentNotes,
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = typography.body,
                         color = palette.content.copy(alpha = 0.58f),
                     )
                 }
@@ -178,7 +184,7 @@ fun NotesEditorScreen(
                         isSelected = note.id == editorState.activeNoteId,
                         onClick = { onNoteSelected(note) },
                     )
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(spacing.sm))
                 }
             }
         }
@@ -206,7 +212,8 @@ private fun NotesEditorTopBar(
     onRequestDelete: (String) -> Unit,
 ) {
     var isMenuExpanded by remember { mutableStateOf(false) }
-    val actionColor = MaterialTheme.colorScheme.onSurface
+    val spacing = NotesTheme.spacing
+    val actionColor = NotesTheme.colors.textPrimary
     val disabledActionColor = actionColor.copy(alpha = 0.34f)
 
     Row(
@@ -218,7 +225,7 @@ private fun NotesEditorTopBar(
             onClick = onBackClick,
             modifier =
                 Modifier
-                    .size(44.dp)
+                    .size(spacing.topBarActionSize)
                     .semantics { contentDescription = copy.backAction },
         ) {
             BackIcon(color = actionColor)
@@ -229,18 +236,18 @@ private fun NotesEditorTopBar(
                 onClick = onSaveClick,
                 modifier =
                     Modifier
-                        .size(44.dp)
+                        .size(spacing.topBarActionSize)
                         .semantics { contentDescription = copy.saveAction },
             ) {
                 SaveIcon(color = if (canSave) actionColor else disabledActionColor)
             }
-            Spacer(modifier = Modifier.width(4.dp))
+            Spacer(modifier = Modifier.width(spacing.xxs))
             Box {
                 IconButton(
                     onClick = { isMenuExpanded = true },
                     modifier =
                         Modifier
-                            .size(44.dp)
+                            .size(spacing.topBarActionSize)
                             .semantics { contentDescription = copy.moreAction },
                 ) {
                     MoreIcon(color = actionColor)
@@ -290,7 +297,7 @@ private fun NotesEditorTopBar(
 
 @Composable
 private fun BackIcon(color: Color) {
-    Canvas(modifier = Modifier.size(22.dp)) {
+    Canvas(modifier = Modifier.size(NotesTheme.spacing.iconSize)) {
         val strokeWidth = size.minDimension * ICON_STROKE_WIDTH_RATIO
         drawLine(
             color = color,
@@ -318,7 +325,7 @@ private fun BackIcon(color: Color) {
 
 @Composable
 private fun SaveIcon(color: Color) {
-    Canvas(modifier = Modifier.size(22.dp)) {
+    Canvas(modifier = Modifier.size(NotesTheme.spacing.iconSize)) {
         val strokeWidth = size.minDimension * ICON_STROKE_WIDTH_RATIO
         val inset = size.minDimension * 0.18f
         drawRect(
@@ -350,7 +357,7 @@ private fun SaveIcon(color: Color) {
 
 @Composable
 private fun MoreIcon(color: Color) {
-    Canvas(modifier = Modifier.size(22.dp)) {
+    Canvas(modifier = Modifier.size(NotesTheme.spacing.iconSize)) {
         val radius = size.minDimension * 0.07f
         drawCircle(color = color, radius = radius, center = Offset(size.width * 0.5f, size.height * 0.26f))
         drawCircle(color = color, radius = radius, center = Offset(size.width * 0.5f, size.height * 0.5f))
@@ -362,13 +369,15 @@ private fun MoreIcon(color: Color) {
 private fun SearchField(
     value: String,
     copy: NotesUiCopy,
-    palette: NoteEditorPalette,
+    palette: NotesNotePalette,
     onValueChange: (String) -> Unit,
 ) {
+    val spacing = NotesTheme.spacing
+    val typography = NotesTheme.typography
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = palette.card,
-        shape = RoundedCornerShape(8.dp),
+        shape = NotesTheme.shapes.small,
     ) {
         BasicTextField(
             value = value,
@@ -377,9 +386,9 @@ private fun SearchField(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                    .padding(horizontal = spacing.md, vertical = spacing.sm),
             textStyle =
-                MaterialTheme.typography.bodyMedium.copy(
+                typography.body.copy(
                     color = palette.content,
                 ),
             cursorBrush = SolidColor(palette.content),
@@ -388,7 +397,7 @@ private fun SearchField(
                     if (value.isEmpty()) {
                         Text(
                             text = copy.searchPlaceholder,
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = typography.body,
                             color = palette.content.copy(alpha = 0.46f),
                         )
                     }
@@ -406,14 +415,19 @@ private fun FilterRow(
     onFilterSelected: (NoteFilter) -> Unit,
 ) {
     Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(NotesTheme.spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         NoteFilter.entries.forEach { filter ->
             FilterChip(
                 selected = selectedFilter == filter,
                 onClick = { onFilterSelected(filter) },
-                label = { Text(text = filter.label(copy)) },
+                label = {
+                    Text(
+                        text = filter.label(copy),
+                        style = NotesTheme.typography.caption,
+                    )
+                },
             )
         }
     }
@@ -449,26 +463,31 @@ private fun ColorSwatchRow(
     onColorSelected: (String) -> Unit,
 ) {
     Row(
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(NotesTheme.spacing.sm),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        noteEditorPalettes.forEach { palette ->
+        NotesTheme.colors.notePalettes.forEach { palette ->
             val isSelected = palette.key == selectedColorKey
             Box(
                 modifier =
                     Modifier
-                        .size(28.dp)
+                        .size(NotesTheme.spacing.swatchSize)
                         .clip(CircleShape)
                         .background(palette.background)
                         .border(
                             border =
                                 BorderStroke(
-                                    width = if (isSelected) 2.dp else 1.dp,
+                                    width =
+                                        if (isSelected) {
+                                            NotesTheme.spacing.xxs / 2
+                                        } else {
+                                            NotesTheme.spacing.xxs / 4
+                                        },
                                     color =
                                         if (isSelected) {
                                             palette.content.copy(alpha = 0.42f)
                                         } else {
-                                            Color.White.copy(alpha = 0.72f)
+                                            NotesTheme.colors.border.copy(alpha = 0.72f)
                                         },
                                 ),
                             shape = CircleShape,
@@ -497,11 +516,10 @@ private fun EditorTitleField(
         value = value,
         placeholder = placeholder,
         textStyle =
-            MaterialTheme.typography.headlineLarge.copy(
+            NotesTheme.typography.editorTitle.copy(
                 color = textColor,
-                fontWeight = FontWeight.ExtraBold,
             ),
-        minHeight = 64.dp,
+        minHeight = NotesTheme.spacing.editorTitleMinHeight,
         onValueChange = onValueChange,
     )
 }
@@ -517,10 +535,10 @@ private fun EditorBodyField(
         value = value,
         placeholder = placeholder,
         textStyle =
-            MaterialTheme.typography.bodyLarge.copy(
+            NotesTheme.typography.editorBody.copy(
                 color = textColor,
             ),
-        minHeight = 360.dp,
+        minHeight = NotesTheme.spacing.editorBodyMinHeight,
         onValueChange = onValueChange,
     )
 }
@@ -565,7 +583,10 @@ private fun RecentNoteCard(
     isSelected: Boolean,
     onClick: () -> Unit,
 ) {
-    val palette = noteEditorPaletteFor(note.colorKey)
+    val colors = NotesTheme.colors
+    val spacing = NotesTheme.spacing
+    val typography = NotesTheme.typography
+    val palette = colors.notePaletteFor(note.colorKey)
     val titleDecoration =
         if (note.isCompleted) {
             TextDecoration.LineThrough
@@ -576,43 +597,47 @@ private fun RecentNoteCard(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(8.dp))
+                .clip(NotesTheme.shapes.card)
                 .border(
                     border =
                         BorderStroke(
-                            width = if (isSelected) 2.dp else 1.dp,
+                            width =
+                                if (isSelected) {
+                                    spacing.xxs / 2
+                                } else {
+                                    spacing.xxs / 4
+                                },
                             color =
                                 if (isSelected) {
                                     palette.content.copy(alpha = 0.3f)
                                 } else {
-                                    Color.White.copy(alpha = 0.48f)
+                                    colors.border
                                 },
                         ),
-                    shape = RoundedCornerShape(8.dp),
+                    shape = NotesTheme.shapes.card,
                 ).clickable(onClick = onClick),
         color = palette.card,
-        shape = RoundedCornerShape(8.dp),
+        shape = NotesTheme.shapes.card,
     ) {
-        Column(modifier = Modifier.padding(14.dp)) {
+        Column(modifier = Modifier.padding(spacing.md)) {
             Text(
                 text = note.title.ifBlank { copy.untitledFallback },
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
+                style = typography.cardTitle,
                 color = palette.content,
                 textDecoration = titleDecoration,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(spacing.xxs))
             Text(
                 text = note.contentPreview.ifBlank { note.updatedAt.toEditedLabel(copy) },
-                style = MaterialTheme.typography.bodySmall,
+                style = typography.bodySmall,
                 color = palette.content.copy(alpha = 0.68f),
                 textDecoration = titleDecoration,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(spacing.xs))
             Text(
                 text =
                     if (note.isCompleted) {
@@ -620,7 +645,7 @@ private fun RecentNoteCard(
                     } else {
                         copy.activeStatusLabel
                     },
-                style = MaterialTheme.typography.labelSmall,
+                style = typography.label,
                 color = palette.content.copy(alpha = 0.54f),
             )
         }
@@ -634,91 +659,42 @@ private fun NoteFilter.label(copy: NotesUiCopy): String =
         NoteFilter.COMPLETED -> copy.completedFilterLabel
     }
 
-private data class NoteEditorPalette(
-    val key: String,
-    val background: Color,
-    val card: Color,
-    val content: Color,
-)
-
-private val noteEditorPalettes =
-    listOf(
-        NoteEditorPalette(
-            key = NoteColorKeys.WHITE,
-            background = Color(0xFFFFFBFF),
-            card = Color(0xFFFFFFFF),
-            content = Color(0xFF2C2830),
-        ),
-        NoteEditorPalette(
-            key = NoteColorKeys.CREAM,
-            background = Color(0xFFFFF2D7),
-            card = Color(0xFFFFF8E8),
-            content = Color(0xFF3B3021),
-        ),
-        NoteEditorPalette(
-            key = NoteColorKeys.SKY,
-            background = Color(0xFFE6F3FF),
-            card = Color(0xFFF3FAFF),
-            content = Color(0xFF243241),
-        ),
-        NoteEditorPalette(
-            key = NoteColorKeys.MINT,
-            background = Color(0xFFE3F7EA),
-            card = Color(0xFFF1FBF4),
-            content = Color(0xFF26382C),
-        ),
-        NoteEditorPalette(
-            key = NoteColorKeys.LAVENDER,
-            background = Color(0xFFF1E5F7),
-            card = Color(0xFFF9F2FC),
-            content = Color(0xFF30263B),
-        ),
-        NoteEditorPalette(
-            key = NoteColorKeys.BLUSH,
-            background = Color(0xFFFFE8EB),
-            card = Color(0xFFFFF4F5),
-            content = Color(0xFF3D2830),
-        ),
-    )
-
-private fun noteEditorPaletteFor(colorKey: String): NoteEditorPalette =
-    noteEditorPalettes.firstOrNull { palette -> palette.key == colorKey }
-        ?: noteEditorPalettes.first { palette -> palette.key == NoteColorKeys.LAVENDER }
-
 private const val ICON_STROKE_WIDTH_RATIO = 0.08f
 
 @Preview
 @Composable
 private fun NotesEditorScreenPreview() {
-    MaterialTheme {
-        NotesEditorScreen(
-            uiState = NotesListUiState(),
-            editorState =
-                NoteEditorUiState(
-                    title = "Project Ideas",
-                    content =
-                        listOf(
-                            "1. Mobile note app with soft pop design",
-                            "2. AI text summarizer",
-                            "3. Personal finance tracker",
-                        ).joinToString(separator = "\n"),
-                    selectedColorKey = NoteColorKeys.LAVENDER,
-                    updatedAt = 1_777_071_491_000L,
-                ),
-            lastMessage = null,
-            copy = NotesUiCopy.English,
-            onBackClick = {},
-            onSaveClick = {},
-            onTitleChange = {},
-            onContentChange = {},
-            onColorSelected = {},
-            onSearchQueryChange = {},
-            onFilterSelected = {},
-            onEditorCompletedChange = {},
-            onRequestDelete = {},
-            onDismissDelete = {},
-            onConfirmDelete = {},
-            onNoteSelected = {},
-        )
+    NotesDesignSystem {
+        MaterialTheme {
+            NotesEditorScreen(
+                uiState = NotesListUiState(),
+                editorState =
+                    NoteEditorUiState(
+                        title = "Project Ideas",
+                        content =
+                            listOf(
+                                "1. Mobile note app with soft pop design",
+                                "2. AI text summarizer",
+                                "3. Personal finance tracker",
+                            ).joinToString(separator = "\n"),
+                        selectedColorKey = NotesColors.LAVENDER,
+                        updatedAt = 1_777_071_491_000L,
+                    ),
+                lastMessage = null,
+                copy = NotesUiCopy.English,
+                onBackClick = {},
+                onSaveClick = {},
+                onTitleChange = {},
+                onContentChange = {},
+                onColorSelected = {},
+                onSearchQueryChange = {},
+                onFilterSelected = {},
+                onEditorCompletedChange = {},
+                onRequestDelete = {},
+                onDismissDelete = {},
+                onConfirmDelete = {},
+                onNoteSelected = {},
+            )
+        }
     }
 }

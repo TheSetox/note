@@ -17,6 +17,7 @@ Notes feature domain/data/presentation logic for note editing, list management, 
 ## Dependencies
 - `core:common`
 - `core:database`
+- `core:designsystem`
 - `core:ui`
 - `compose-runtime`, `compose-foundation`, `compose-material3`, `compose-ui`
 - `compose-ui-tooling-preview` (commonMain preview annotation support)
@@ -34,6 +35,7 @@ graph LR
 
   featureNotes --> coreCommon["core:common"]
   featureNotes --> coreDatabase["core:database"]
+  featureNotes --> coreDesignSystem["core:designsystem"]
   featureNotes --> coreUi["core:ui"]
 ```
 
@@ -48,6 +50,7 @@ graph LR
 - Production repository is file-backed through `NotesLocalDataSource`; tests/fakes can still use `InMemoryNotesRepository`.
 - `NotesAppRoot()` resolves production wiring through `notesProdModule` and renders the shared editor screen for Android, iOS, and desktop.
 - `NotesEditorScreen()` uses icon-first editor chrome and keeps search/filter/recent notes below the editor body.
+- Editor colors, typography, spacing, shapes, and motion come from `core:designsystem` through `NotesTheme`.
 - `NotesAppRoot()` includes `NotesAppRootPreview()` for Compose preview in IDE.
 - Core contracts/classes (`NotesRepository`, repositories, `NotesListViewModel`, and `NotesAppRoot`) include KDoc.
 - Module-level format tasks are available: `:feature:notes:spotlessCheck` and `:feature:notes:spotlessApply`.
