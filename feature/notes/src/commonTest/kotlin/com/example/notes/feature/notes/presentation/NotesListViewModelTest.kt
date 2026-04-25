@@ -161,6 +161,89 @@ class NotesListViewModelTest {
             }
         }
 
+    @Test
+    fun setEditorNoteCompleted_updatesEditorAndVisibleListState() =
+        runTest(testDispatcher) {
+            val repository = InMemoryNotesRepository(dispatchers = dispatchers)
+            val viewModel = NotesListViewModel(repository = repository, dispatchers = dispatchers)
+            try {
+                viewModel.addNote(title = "Launch checklist", content = "Ship the editor")
+                advanceUntilIdle()
+
+                viewModel.startEditing(
+                    viewModel.uiState.value.notes
+                        .first(),
+                )
+                viewModel.setEditorNoteCompleted(isCompleted = true)
+                advanceUntilIdle()
+
+                assertEquals(true, viewModel.editorState.value.isCompleted)
+                assertEquals(
+                    true,
+                    viewModel.uiState.value.notes
+                        .first()
+                        .isCompleted,
+                )
+
+                viewModel.onFilterChanged(NoteFilter.COMPLETED)
+                advanceUntilIdle()
+                assertEquals(1, viewModel.uiState.value.notes.size)
+            } finally {
+                viewModel.clear()
+            }
+        }
+
+    @Test
+    fun confirmDelete_clearsActiveEditorAfterDeletingOpenNote() =
+        runTest(testDispatcher) {
+            val repository = InMemoryNotesRepository(dispatchers = dispatchers)
+            val viewModel = NotesListViewModel(repository = repository, dispatchers = dispatchers)
+            try {
+                viewModel.addNote(title = "Delete me", content = "Temporary")
+                advanceUntilIdle()
+
+                val note =
+                    viewModel.uiState.value.notes
+                        .first()
+                viewModel.startEditing(note)
+                viewModel.requestDelete(note.id)
+                viewModel.confirmDelete()
+                advanceUntilIdle()
+
+                assertEquals(null, viewModel.uiState.value.pendingDeleteNoteId)
+                assertEquals(0, viewModel.uiState.value.notes.size)
+                assertEquals(NoteEditorUiState(), viewModel.editorState.value)
+            } finally {
+                viewModel.clear()
+            }
+        }
+
+    @Test
+    fun dismissDeleteConfirmation_preservesActiveEditorState() =
+        runTest(testDispatcher) {
+            val repository = InMemoryNotesRepository(dispatchers = dispatchers)
+            val viewModel = NotesListViewModel(repository = repository, dispatchers = dispatchers)
+            try {
+                viewModel.addNote(title = "Keep me", content = "Still editing")
+                advanceUntilIdle()
+
+                val note =
+                    viewModel.uiState.value.notes
+                        .first()
+                viewModel.startEditing(note)
+                viewModel.requestDelete(note.id)
+                viewModel.dismissDeleteConfirmation()
+                advanceUntilIdle()
+
+                assertEquals(null, viewModel.uiState.value.pendingDeleteNoteId)
+                assertEquals(note.id, viewModel.editorState.value.activeNoteId)
+                assertEquals("Keep me", viewModel.editorState.value.title)
+                assertEquals(1, viewModel.uiState.value.notes.size)
+            } finally {
+                viewModel.clear()
+            }
+        }
+
     private class TestAppDispatchers(
         testDispatcher: TestDispatcher,
     ) : AppDispatchers {

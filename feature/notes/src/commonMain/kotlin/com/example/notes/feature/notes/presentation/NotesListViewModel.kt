@@ -40,6 +40,7 @@ data class NoteEditorUiState(
     val title: String = "",
     val content: String = "",
     val selectedColorKey: String = NoteColorKeys.LAVENDER,
+    val isCompleted: Boolean = false,
     val updatedAt: Long? = null,
     val hasUnsavedChanges: Boolean = false,
 )
@@ -151,6 +152,7 @@ class NotesListViewModel(
                 title = note.title,
                 content = note.content,
                 selectedColorKey = note.colorKey,
+                isCompleted = note.isCompleted,
                 updatedAt = note.updatedAt,
                 hasUnsavedChanges = false,
             )
@@ -220,6 +222,7 @@ class NotesListViewModel(
                         title = savedNote.title,
                         content = savedNote.content,
                         selectedColorKey = savedNote.colorKey,
+                        isCompleted = savedNote.isCompleted,
                         updatedAt = savedNote.updatedAt,
                         hasUnsavedChanges = false,
                     )
@@ -307,6 +310,32 @@ class NotesListViewModel(
     }
 
     /**
+     * Toggles completion state for the note currently open in the editor.
+     */
+    fun setEditorNoteCompleted(isCompleted: Boolean) {
+        val noteId = _editorState.value.activeNoteId ?: return
+        scope.launch(dispatchers.io) {
+            val result = repository.setCompleted(id = noteId, isCompleted = isCompleted)
+            result.onSuccess { savedNote ->
+                if (_editorState.value.activeNoteId == savedNote.id) {
+                    _editorState.value =
+                        _editorState.value.copy(
+                            isCompleted = savedNote.isCompleted,
+                            updatedAt = savedNote.updatedAt,
+                        )
+                }
+            }
+            emitMessage(
+                if (result.isSuccess) {
+                    NotesMessageKey.STATUS_UPDATE_SUCCESS
+                } else {
+                    NotesMessageKey.STATUS_UPDATE_FAILURE
+                },
+            )
+        }
+    }
+
+    /**
      * Marks a note as pending deletion so the UI can show a confirmation dialog.
      */
     fun requestDelete(noteId: String) {
@@ -329,6 +358,9 @@ class NotesListViewModel(
             val result = repository.deleteNote(noteId)
             if (result.isSuccess) {
                 pendingDeleteNoteId.value = null
+                if (_editorState.value.activeNoteId == noteId) {
+                    _editorState.value = NoteEditorUiState()
+                }
             }
             emitMessage(
                 if (result.isSuccess) {
